@@ -8,20 +8,20 @@ import { InputText } from 'primereact/inputtext';
 import { Toast } from 'primereact/toast';
 import { Toolbar } from 'primereact/toolbar';
 import { classNames } from 'primereact/utils';
-import { addColor, listColor, removeColor, updateColor } from '../../api/color';
 import { useForm } from 'react-hook-form';
-const ColorPage = () => {
+import { addMaterial, listMaterial, removeMaterial, updateMaterial } from '../../api/material';
+const MaterialPage = () => {
     let emptyProduct = {
         id: null,
         name: null,
-        hex: null,
+        code: null,
     };
-    const [colors, setColors] = useState(null);
+    const [materials, setMaterials] = useState(null);
     const [productDialog, setProductDialog] = useState(false);
     const [deleteProductDialog, setDeleteProductDialog] = useState(false);
     const [deleteProductsDialog, setDeleteProductsDialog] = useState(false);
-    const [color, setColor] = useState(emptyProduct);
-    const [editColor, setEditColor] = useState(false)
+    const [material, setMaterial] = useState(emptyProduct);
+    const [editMaterial, setEditMaterial] = useState(false)
     const [selectedProducts, setSelectedProducts] = useState(null);
     const [globalFilter, setGlobalFilter] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -33,7 +33,7 @@ const ColorPage = () => {
 
     const searchAll = () => {
         setLoading(true);
-        listColor(
+        listMaterial(
             {
                 id: "",
                 active: true,
@@ -50,7 +50,7 @@ const ColorPage = () => {
             // _paginator.total = res.total;
             // setPaginator(_paginator);
             const _data = res?.data.data
-            setColors(_data);
+            setMaterials(_data);
             setLoading(false);
         });
     };
@@ -58,8 +58,8 @@ const ColorPage = () => {
 
     const onSubmit = data => {
         setLoading(true);
-        if (editColor) {
-            updateColor(data).then((res) => {
+        if (editMaterial) {
+            updateMaterial(data).then((res) => {
                 searchAll();
                 setLoading(false);
                 setProductDialog(false)
@@ -67,7 +67,7 @@ const ColorPage = () => {
                 toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Sửa thành công', life: 1000 });
             })
         } else {
-            addColor(data).then((res) => {
+            addMaterial(data).then((res) => {
                 searchAll();
                 setLoading(false);
                 setProductDialog(false)
@@ -78,14 +78,14 @@ const ColorPage = () => {
     }
 
     const openNew = () => {
-        setColor(emptyProduct)
+        setMaterial(emptyProduct)
         setProductDialog(true);
     };
 
     const hideDialog = () => {
-        setColor(emptyProduct)
+        setMaterial(emptyProduct)
         setProductDialog(false);
-        setEditColor(false)
+        setEditMaterial(false)
     };
 
     const hideDeleteProductDialog = () => {
@@ -96,26 +96,26 @@ const ColorPage = () => {
         setDeleteProductsDialog(false);
     };
 
-    const editProduct = (color) => {
+    const editProduct = (material) => {
         const data = {
-            id: color?.id,
-            name: color?.name,
-            hex: color?.hex,
+            id: material?.id,
+            name: material?.name,
+            code: material?.code,
         }
-        reset(data)
-        setEditColor(true)
+        reset(data);
+        setEditMaterial(true);
         setProductDialog(true);
     };
 
 
-    const confirmDeleteProduct = (color) => {
-        setColor(color);
+    const confirmDeleteProduct = (material) => {
+        setMaterial(material);
         setDeleteProductDialog(true);
     };
 
     const deleteProduct = () => {
-        const ids = color
-        removeColor(ids).then((res) => {
+        const ids = material
+        removeMaterial(ids).then((res) => {
             if (res) {
                 searchAll();
                 // onChangeSelectedRows([]);
@@ -134,8 +134,8 @@ const ColorPage = () => {
     };
 
     const deleteSelectedProducts = () => {
-        let _products = colors.filter((val) => !selectedProducts.includes(val));
-        setColors(_products);
+        let _products = materials.filter((val) => !selectedProducts.includes(val));
+        setMaterials(_products);
         setDeleteProductsDialog(false);
         setSelectedProducts(null);
         toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Products Deleted', life: 3000 });
@@ -161,6 +161,7 @@ const ColorPage = () => {
         );
     };
 
+
     const actionBodyTemplate = (rowData) => {
         return (
             <>
@@ -172,7 +173,7 @@ const ColorPage = () => {
 
     const header = (
         <div className="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
-            <h5 className="m-0">Màu sắc</h5>
+            <h5 className="m-0">Nguyên liệu</h5>
             <span className="block mt-2 md:mt-0 p-input-icon-left">
                 <i className="pi pi-search" />
                 <InputText type="search" onChange={(e) => setGlobalFilter(e.target.value)} placeholder="Tìm kiếm" />
@@ -198,10 +199,9 @@ const ColorPage = () => {
                 <div className="card">
                     <Toast ref={toast} />
                     <Toolbar className="mb-4" left={leftToolbarTemplate} right={rightToolbarTemplate}></Toolbar>
-
                     <DataTable
                         ref={dt}
-                        value={colors}
+                        value={materials}
                         selection={selectedProducts}
                         onSelectionChange={(e) => setSelectedProducts(e.value)}
                         dataKey="id"
@@ -210,37 +210,39 @@ const ColorPage = () => {
                         rowsPerPageOptions={[5, 10, 25]}
                         className="datatable-responsive"
                         paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
-                        currentPageReportTemplate="Showing {first} to {last} of {totalRecords} colors"
+                        currentPageReportTemplate="Showing {first} to {last} of {totalRecords} materials"
                         globalFilter={globalFilter}
-                        emptyMessage="No colors found."
+                        emptyMessage="No materials found."
                         header={header}
                         loading={loading}
                         responsiveLayout="scroll"
                     >
                         <Column selectionMode="multiple" headerStyle={{ width: '4rem' }}></Column>
-                        <Column field="name" header="Tên màu sác" sortable body={(d) => <span >{d.name}</span>} headerStyle={{ minWidth: '15rem' }}></Column>
-                        <Column field="hex" header="Mã Hex" sortable body={(d) => <span >{d.hex}</span>} headerStyle={{ minWidth: '15rem' }}></Column>
+                        <Column field="code" header="Mã nguyên liệu" sortable body={(d) => <span >{d.code}</span>} headerStyle={{ minWidth: '15rem' }}></Column>
+                        <Column field="name" header="Tên nguyên liệu" sortable body={(d) => <span >{d.name}</span>} headerStyle={{ minWidth: '15rem' }}></Column>
+
 
                         <Column header="Chức năng" body={(d) => actionBodyTemplate(d)} headerStyle={{ minWidth: '10rem' }}></Column>
                     </DataTable>
 
-                    <Dialog visible={productDialog} style={{ width: '450px' }} header={editColor ? "Sửa màu sắc" : "Thêm mới màu sắc"} modal className="p-fluid" onHide={hideDialog}>
+                    <Dialog visible={productDialog} style={{ width: '450px' }} header={editMaterial ? "Sửa nguyên liệu" : "Thêm mới nguyên liệu"} modal className="p-fluid" onHide={hideDialog}>
                         <form onSubmit={handleSubmit(onSubmit)}>
                             <InputText {...register('id')} id="id" hidden />
                             <div className="field">
-                                <label htmlFor="name">Tên màu sắc</label>
+                                <label htmlFor="code">Mã nguyên liệu</label>
+                                <InputText
+                                    {...register('code', { required: true })}
+                                    id="code"
+                                    className={classNames({ 'p-invalid': errors.code })} />
+                            </div>
+                            <div className="field">
+                                <label htmlFor="name">Tên nguyên liệu</label>
                                 <InputText
                                     {...register('name', { required: true })}
                                     id="name"
                                     className={classNames({ 'p-invalid': errors.name })} />
                             </div>
-                            <div className="field">
-                                <label htmlFor="hex">Mã hex</label>
-                                <InputText
-                                    {...register('hex', { required: true })}
-                                    id="hex"
-                                    className={classNames({ 'p-invalid': errors.hex })} />
-                            </div>
+
                             <div className='flex align-items-center justify-content-center'>
                                 <Button label="Cancel" type='reset' icon="pi pi-times" text onClick={hideDialog} />
                                 <Button label="Save" type='submit' icon="pi pi-check" text />
@@ -251,9 +253,9 @@ const ColorPage = () => {
                     <Dialog visible={deleteProductDialog} style={{ width: '450px' }} header="Confirm" modal footer={deleteProductDialogFooter} onHide={hideDeleteProductDialog}>
                         <div className="flex align-items-center justify-content-center">
                             <i className="pi pi-exclamation-triangle mr-3" style={{ fontSize: '2rem' }} />
-                            {color && (
+                            {material && (
                                 <span>
-                                    Are you sure you want to delete <b>{color.name}</b>?
+                                    Bạn có chắc chắn muốn xóa <b>{material.name}</b>?
                                 </span>
                             )}
                         </div>
@@ -262,7 +264,7 @@ const ColorPage = () => {
                     <Dialog visible={deleteProductsDialog} style={{ width: '450px' }} header="Confirm" modal footer={deleteProductsDialogFooter} onHide={hideDeleteProductsDialog}>
                         <div className="flex align-items-center justify-content-center">
                             <i className="pi pi-exclamation-triangle mr-3" style={{ fontSize: '2rem' }} />
-                            {color && <span>Are you sure you want to delete the selected colors?</span>}
+                            {material && <span>Are you sure you want to delete the selected materials?</span>}
                         </div>
                     </Dialog>
                 </div>
@@ -272,4 +274,4 @@ const ColorPage = () => {
 
 }
 
-export default ColorPage
+export default MaterialPage

@@ -6,6 +6,9 @@ import CategoryPage from './pages/category/CategoryPage';
 import ColorPage from './pages/color/ColorPage';
 import SignIn from './pages/auth/SignIn';
 import SizePage from './pages/size/SizePage';
+import MaterialPage from './pages/material/MaterialPage';
+
+
 function App() {
   return (
     <div className="App">
@@ -17,9 +20,8 @@ function App() {
           <Route path='categorys' element={<CategoryPage />}></Route>
           <Route path='colors' element={<ColorPage />}></Route>
           <Route path='size' element={<SizePage />}></Route>
+          <Route path='material' element={<MaterialPage />}></Route>
         </Route>
-
-
       </Routes>
 
     </div>

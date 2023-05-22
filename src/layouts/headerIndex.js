@@ -30,11 +30,18 @@ const HeaderIndex = () => {
           },
         },
         {
-          label: 'Sizes',
+          label: 'Kích cỡ',
           command: (event) => {
             navigate('/size')
           },
+        },
+        {
+          label: 'Nguyên liệu',
+          command: (event) => {
+            navigate('/material')
+          },
         }
+
 
       ]
     },
