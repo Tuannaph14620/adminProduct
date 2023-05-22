@@ -28,6 +28,12 @@ const HeaderIndex = () => {
           command: (event) => {
             navigate('/colors')
           },
+        },
+        {
+          label: 'Sizes',
+          command: (event) => {
+            navigate('/size')
+          },
         }
 
       ]

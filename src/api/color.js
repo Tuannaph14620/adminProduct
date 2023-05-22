@@ -16,7 +16,7 @@ export const removeColor = (id) => {
     const url = `/api/v1/admin/color/delete`
     return instance.post(url, id)
 }
-export const updateColor = (category) => {
-    const url = `categorys/${category.id}`
-    return instance.put(url, category)
+export const updateColor = (colors) => {
+    const url = `/api/v1/admin/color/update`
+    return instance.post(url, colors)
 }

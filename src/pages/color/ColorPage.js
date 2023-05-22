@@ -4,44 +4,29 @@ import { Column } from 'primereact/column';
 import { DataTable } from 'primereact/datatable';
 import { Dialog } from 'primereact/dialog';
 import { FileUpload } from 'primereact/fileupload';
-import { InputNumber } from 'primereact/inputnumber';
 import { InputText } from 'primereact/inputtext';
-import { InputTextarea } from 'primereact/inputtextarea';
-import { RadioButton } from 'primereact/radiobutton';
-import { Rating } from 'primereact/rating';
 import { Toast } from 'primereact/toast';
 import { Toolbar } from 'primereact/toolbar';
 import { classNames } from 'primereact/utils';
-import { useDispatch, useSelector } from 'react-redux';
-import { listCategory } from '../../features/categorySlice';
-import { addColors, listColors, removeColors } from '../../features/colorSlice';
+import { addColor, listColor, removeColor, updateColor } from '../../api/color';
 import { useForm } from 'react-hook-form';
-import { addColor, listColor, removeColor } from '../../api/color';
 const ColorPage = () => {
     let emptyProduct = {
         id: null,
-        name: '',
-        hex: ''
+        name: null,
+        hex: null,
     };
-
-
-
     const [colors, setColors] = useState(null);
     const [productDialog, setProductDialog] = useState(false);
     const [deleteProductDialog, setDeleteProductDialog] = useState(false);
     const [deleteProductsDialog, setDeleteProductsDialog] = useState(false);
-    const [dataColor, setDataColor] = useState(null);
-    const [dataColorCreate, setDataColorCreate] = useState(emptyProduct);
+    const [color, setColor] = useState(emptyProduct);
+    const [editColor, setEditColor] = useState(false)
     const [selectedProducts, setSelectedProducts] = useState(null);
-    const [submitted, setSubmitted] = useState(false);
     const [globalFilter, setGlobalFilter] = useState(null);
     const [loading, setLoading] = useState(true);
     const toast = useRef(null);
     const dt = useRef(null);
-
-    // const color = useSelector(data => data.color.value)
-    const dispatch = useDispatch();
-
     useEffect(() => {
         searchAll();
     }, []);
@@ -50,48 +35,57 @@ const ColorPage = () => {
         setLoading(true);
         listColor(
             {
-                textSearch: "",
-                active: false,
+                id: "",
+                active: true,
                 textSearch: "",
                 pageReq: {
                     page: 0,
-                    pageSize: 10,
+                    pageSize: 15,
                     sortField: "",
                     sortDirection: ""
                 }
             }
         ).then((res) => {
-
             // const _paginator = { ...paginator };
             // _paginator.total = res.total;
-            const _data = res?.data.data            // setPaginator(_paginator);
+            // setPaginator(_paginator);
+            const _data = res?.data.data
             setColors(_data);
             setLoading(false);
         });
     };
-
     const { register, handleSubmit, formState: { errors }, reset } = useForm()
 
     const onSubmit = data => {
         setLoading(true);
-        addColor(data).then((res) => {
-            searchAll();
-            setLoading(false);
-            setProductDialog(false)
-            reset();
-        })
+        if (editColor) {
+            updateColor(data).then((res) => {
+                searchAll();
+                setLoading(false);
+                setProductDialog(false)
+                reset();
+                toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Sửa thành công', life: 1000 });
+            })
+        } else {
+            addColor(data).then((res) => {
+                searchAll();
+                setLoading(false);
+                setProductDialog(false)
+                reset();
+                toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Thêm thành công', life: 1000 });
+            })
+        }
     }
 
     const openNew = () => {
-        setDataColor(emptyProduct);
-        setSubmitted(false);
+        setColor(emptyProduct)
         setProductDialog(true);
     };
 
     const hideDialog = () => {
-        setSubmitted(false);
+        setColor(emptyProduct)
         setProductDialog(false);
-        reset()
+        setEditColor(false)
     };
 
     const hideDeleteProductDialog = () => {
@@ -102,51 +96,33 @@ const ColorPage = () => {
         setDeleteProductsDialog(false);
     };
 
-
-    const editProduct = (product) => {
-        setDataColor({ ...product });
+    const editProduct = (color) => {
+        const data = {
+            id: color?.id,
+            name: color?.name,
+            hex: color?.hex,
+        }
+        reset(data)
+        setEditColor(true)
         setProductDialog(true);
     };
 
-    const confirmDeleteProduct = (product) => {
-        setDataColor(product);
+
+    const confirmDeleteProduct = (color) => {
+        setColor(color);
         setDeleteProductDialog(true);
     };
 
     const deleteProduct = () => {
-        console.log(dataColor);
-        // const ids = selectedRow.reduce((acc, cur) => [...acc, cur?.id], []);
-        const ids = dataColor
+        const ids = color
         removeColor(ids).then((res) => {
             if (res) {
                 searchAll();
                 // onChangeSelectedRows([]);
                 setDeleteProductDialog(false);
-                toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Product Deleted', life: 1000 });
+                toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Xóa thành công', life: 1000 });
             }
         });
-
-    };
-
-    const findIndexById = (id) => {
-        // let index = -1;
-        // for (let i = 0; i < products.length; i++) {
-        //     if (products[i].id === id) {
-        //         index = i;
-        //         break;
-        //     }
-        // }
-
-        // return index;
-    };
-
-    const createId = () => {
-        let id = '';
-        let chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-        for (let i = 0; i < 5; i++) {
-            id += chars.charAt(Math.floor(Math.random() * chars.length));
-        }
-        return id;
     };
 
     const exportCSV = () => {
@@ -158,20 +134,13 @@ const ColorPage = () => {
     };
 
     const deleteSelectedProducts = () => {
-        // let _products = color.filter((val) => !selectedProducts.includes(val));
-        // setProducts(_products);
-        // setDeleteProductsDialog(false);
-        // setSelectedProducts(null);
-        // toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Products Deleted', life: 3000 });
+        let _products = colors.filter((val) => !selectedProducts.includes(val));
+        setColors(_products);
+        setDeleteProductsDialog(false);
+        setSelectedProducts(null);
+        toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Products Deleted', life: 3000 });
     };
 
-    const onInputChange = (e, name) => {
-        // const val = (e.target && e.target.value) || '';
-        // let _product = { ...color };
-        // _product[`${name}`] = val;
-
-        // setDataColor(_product);
-    };
     const leftToolbarTemplate = () => {
         return (
             <React.Fragment>
@@ -192,9 +161,6 @@ const ColorPage = () => {
         );
     };
 
-
-
-
     const actionBodyTemplate = (rowData) => {
         return (
             <>
@@ -206,18 +172,12 @@ const ColorPage = () => {
 
     const header = (
         <div className="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
-            <h5 className="m-0">Manage Products</h5>
+            <h5 className="m-0">Màu sắc</h5>
             <span className="block mt-2 md:mt-0 p-input-icon-left">
                 <i className="pi pi-search" />
-                <InputText type="search" onChange={(e) => setGlobalFilter(e.target.value)} placeholder="Search..." />
+                <InputText type="search" onChange={(e) => setGlobalFilter(e.target.value)} placeholder="Tìm kiếm" />
             </span>
         </div>
-    );
-
-    const productDialogFooter = (
-        <>
-
-        </>
     );
     const deleteProductDialogFooter = (
         <>
@@ -250,33 +210,39 @@ const ColorPage = () => {
                         rowsPerPageOptions={[5, 10, 25]}
                         className="datatable-responsive"
                         paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
-                        currentPageReportTemplate="Showing {first} to {last} of {totalRecords} products"
+                        currentPageReportTemplate="Showing {first} to {last} of {totalRecords} colors"
                         globalFilter={globalFilter}
-                        emptyMessage="No products found."
+                        emptyMessage="No colors found."
                         header={header}
-                        responsiveLayout="scroll"
                         loading={loading}
+                        responsiveLayout="scroll"
                     >
                         <Column selectionMode="multiple" headerStyle={{ width: '4rem' }}></Column>
-                        <Column field="code" header="Code" sortable body={(d) => <span >{d.name}</span>} headerStyle={{ minWidth: '15rem' }}></Column>
-                        <Column field="name" header="Name" sortable body={(d) => <span >{d.hex}</span>} headerStyle={{ minWidth: '15rem' }}></Column>
-                        <Column body={actionBodyTemplate} headerStyle={{ minWidth: '10rem' }}></Column>
+                        <Column field="name" header="Tên" sortable body={(d) => <span >{d.name}</span>} headerStyle={{ minWidth: '15rem' }}></Column>
+                        <Column field="hex" header="Mã Hex" sortable body={(d) => <span >{d.hex}</span>} headerStyle={{ minWidth: '15rem' }}></Column>
+
+                        <Column header="Chức năng" body={(d) => actionBodyTemplate(d)} headerStyle={{ minWidth: '10rem' }}></Column>
                     </DataTable>
 
-                    <Dialog visible={productDialog} style={{ width: '450px' }} header="Màu sắc" modal className="p-fluid" footer={productDialogFooter} onHide={hideDialog}>
+                    <Dialog visible={productDialog} style={{ width: '450px' }} header={editColor ? "Sửa màu sắc" : "Thêm mới màu sắc"} modal className="p-fluid" onHide={hideDialog}>
                         <form onSubmit={handleSubmit(onSubmit)}>
+                            <InputText {...register('id')} id="id" hidden />
                             <div className="field">
                                 <label htmlFor="name">Tên màu sắc</label>
-                                <InputText {...register('name', { required: true })} id="name" className={classNames({ 'p-invalid': errors.name })} />
-                                {errors.name && <span style={{ color: 'red' }}>Bạn bắt buộc phải nhập tên màu sác</span>}
+                                <InputText
+                                    {...register('name', { required: true })}
+                                    id="name"
+                                    className={classNames({ 'p-invalid': errors.name })} />
                             </div>
                             <div className="field">
                                 <label htmlFor="hex">Mã hex</label>
-                                <InputText {...register('hex', { required: true })} id="hex" className={classNames({ 'p-invalid': errors.name })} />
-                                {errors.hex && <span style={{ color: 'red' }}>Bạn bắt buộc phải nhập mã hex màu sắc</span>}
+                                <InputText
+                                    {...register('hex', { required: true })}
+                                    id="hex"
+                                    className={classNames({ 'p-invalid': errors.hex })} />
                             </div>
                             <div className='flex align-items-center justify-content-center'>
-                                <Button label="Cancel" icon="pi pi-times" text onClick={hideDialog} />
+                                <Button label="Cancel" type='reset' icon="pi pi-times" text onClick={hideDialog} />
                                 <Button label="Save" type='submit' icon="pi pi-check" text />
                             </div>
                         </form>
@@ -285,9 +251,9 @@ const ColorPage = () => {
                     <Dialog visible={deleteProductDialog} style={{ width: '450px' }} header="Confirm" modal footer={deleteProductDialogFooter} onHide={hideDeleteProductDialog}>
                         <div className="flex align-items-center justify-content-center">
                             <i className="pi pi-exclamation-triangle mr-3" style={{ fontSize: '2rem' }} />
-                            {colors && (
+                            {color && (
                                 <span>
-                                    Are you sure you want to delete <b>{colors.name}</b>?
+                                    Are you sure you want to delete <b>{color.name}</b>?
                                 </span>
                             )}
                         </div>
@@ -296,7 +262,7 @@ const ColorPage = () => {
                     <Dialog visible={deleteProductsDialog} style={{ width: '450px' }} header="Confirm" modal footer={deleteProductsDialogFooter} onHide={hideDeleteProductsDialog}>
                         <div className="flex align-items-center justify-content-center">
                             <i className="pi pi-exclamation-triangle mr-3" style={{ fontSize: '2rem' }} />
-                            {colors && <span>Are you sure you want to delete the selected products?</span>}
+                            {color && <span>Are you sure you want to delete the selected colors?</span>}
                         </div>
                     </Dialog>
                 </div>

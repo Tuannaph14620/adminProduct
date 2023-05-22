@@ -5,25 +5,23 @@ import { DataTable } from 'primereact/datatable';
 import { Dialog } from 'primereact/dialog';
 import { FileUpload } from 'primereact/fileupload';
 import { InputText } from 'primereact/inputtext';
-import { InputTextarea } from 'primereact/inputtextarea';
 import { Toast } from 'primereact/toast';
 import { Toolbar } from 'primereact/toolbar';
 import { classNames } from 'primereact/utils';
-import { addCate, listCate, removeCate, updateCate } from '../../api/category';
 import { useForm } from 'react-hook-form';
-const CategoryPage = () => {
+import { addSize, listSize, removeSize, updateSize } from '../../api/size';
+const SizePage = () => {
     let emptyProduct = {
         id: null,
         name: null,
-        image: null,
-        des: null
+        code: null,
     };
-    const [categorys, setCategorys] = useState(null);
+    const [sizes, setSizes] = useState(null);
     const [productDialog, setProductDialog] = useState(false);
     const [deleteProductDialog, setDeleteProductDialog] = useState(false);
     const [deleteProductsDialog, setDeleteProductsDialog] = useState(false);
-    const [category, setCategory] = useState(emptyProduct);
-    const [editCate, setEditCate] = useState(false)
+    const [size, setSize] = useState(emptyProduct);
+    const [editSize, setEditSize] = useState(false)
     const [selectedProducts, setSelectedProducts] = useState(null);
     const [globalFilter, setGlobalFilter] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -35,7 +33,7 @@ const CategoryPage = () => {
 
     const searchAll = () => {
         setLoading(true);
-        listCate(
+        listSize(
             {
                 id: "",
                 active: true,
@@ -52,7 +50,7 @@ const CategoryPage = () => {
             // _paginator.total = res.total;
             // setPaginator(_paginator);
             const _data = res?.data.data
-            setCategorys(_data);
+            setSizes(_data);
             setLoading(false);
         });
     };
@@ -60,8 +58,8 @@ const CategoryPage = () => {
 
     const onSubmit = data => {
         setLoading(true);
-        if (editCate) {
-            updateCate(data).then((res) => {
+        if (editSize) {
+            updateSize(data).then((res) => {
                 searchAll();
                 setLoading(false);
                 setProductDialog(false)
@@ -69,7 +67,7 @@ const CategoryPage = () => {
                 toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Sửa thành công', life: 1000 });
             })
         } else {
-            addCate(data).then((res) => {
+            addSize(data).then((res) => {
                 searchAll();
                 setLoading(false);
                 setProductDialog(false)
@@ -77,18 +75,17 @@ const CategoryPage = () => {
                 toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Thêm thành công', life: 1000 });
             })
         }
-
     }
 
     const openNew = () => {
-        setCategory(emptyProduct)
+        setSize(emptyProduct)
         setProductDialog(true);
     };
 
     const hideDialog = () => {
-        setCategory(emptyProduct)
+        setSize(emptyProduct)
         setProductDialog(false);
-        setEditCate(false)
+        setEditSize(false)
     };
 
     const hideDeleteProductDialog = () => {
@@ -99,27 +96,26 @@ const CategoryPage = () => {
         setDeleteProductsDialog(false);
     };
 
-    const editProduct = (category) => {
+    const editProduct = (size) => {
         const data = {
-            id: category?.id,
-            name: category?.name,
-            des: category?.des,
-            image: category?.image
+            id: size?.id,
+            name: size?.name,
+            code: size?.code,
         }
-        reset(data)
-        setEditCate(true)
+        reset(data);
+        setEditSize(true);
         setProductDialog(true);
     };
 
 
-    const confirmDeleteProduct = (category) => {
-        setCategory(category);
+    const confirmDeleteProduct = (size) => {
+        setSize(size);
         setDeleteProductDialog(true);
     };
 
     const deleteProduct = () => {
-        const ids = category
-        removeCate(ids).then((res) => {
+        const ids = size
+        removeSize(ids).then((res) => {
             if (res) {
                 searchAll();
                 // onChangeSelectedRows([]);
@@ -138,8 +134,8 @@ const CategoryPage = () => {
     };
 
     const deleteSelectedProducts = () => {
-        let _products = categorys.filter((val) => !selectedProducts.includes(val));
-        setCategorys(_products);
+        let _products = sizes.filter((val) => !selectedProducts.includes(val));
+        setSizes(_products);
         setDeleteProductsDialog(false);
         setSelectedProducts(null);
         toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Products Deleted', life: 3000 });
@@ -165,14 +161,6 @@ const CategoryPage = () => {
         );
     };
 
-    const imageBodyTemplate = (rowData) => {
-        return (
-            <>
-                <span className="p-column-title">Image</span>
-                <img src={`${rowData.image}`} alt={rowData.image} className="shadow-2" width="100" />
-            </>
-        );
-    };
 
     const actionBodyTemplate = (rowData) => {
         return (
@@ -185,7 +173,7 @@ const CategoryPage = () => {
 
     const header = (
         <div className="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
-            <h5 className="m-0">Danh mục sản phẩm</h5>
+            <h5 className="m-0">Kích cỡ</h5>
             <span className="block mt-2 md:mt-0 p-input-icon-left">
                 <i className="pi pi-search" />
                 <InputText type="search" onChange={(e) => setGlobalFilter(e.target.value)} placeholder="Tìm kiếm" />
@@ -211,10 +199,9 @@ const CategoryPage = () => {
                 <div className="card">
                     <Toast ref={toast} />
                     <Toolbar className="mb-4" left={leftToolbarTemplate} right={rightToolbarTemplate}></Toolbar>
-
                     <DataTable
                         ref={dt}
-                        value={categorys}
+                        value={sizes}
                         selection={selectedProducts}
                         onSelectionChange={(e) => setSelectedProducts(e.value)}
                         dataKey="id"
@@ -223,44 +210,39 @@ const CategoryPage = () => {
                         rowsPerPageOptions={[5, 10, 25]}
                         className="datatable-responsive"
                         paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
-                        currentPageReportTemplate="Showing {first} to {last} of {totalRecords} categorys"
+                        currentPageReportTemplate="Showing {first} to {last} of {totalRecords} sizes"
                         globalFilter={globalFilter}
-                        emptyMessage="No categorys found."
+                        emptyMessage="No sizes found."
                         header={header}
                         loading={loading}
                         responsiveLayout="scroll"
                     >
                         <Column selectionMode="multiple" headerStyle={{ width: '4rem' }}></Column>
-                        <Column field="name" header="Name" sortable body={(d) => <span >{d.name}</span>} headerStyle={{ minWidth: '15rem' }}></Column>
-                        <Column field="desc" header="Description" sortable body={(d) => <span >{d.des}</span>} headerStyle={{ minWidth: '15rem' }}></Column>
-                        <Column header="Image" body={imageBodyTemplate}></Column>
-                        <Column body={(d) => actionBodyTemplate(d)} headerStyle={{ minWidth: '10rem' }}></Column>
+                        <Column field="code" header="Mã Hex" sortable body={(d) => <span >{d.code}</span>} headerStyle={{ minWidth: '15rem' }}></Column>
+                        <Column field="name" header="Tên" sortable body={(d) => <span >{d.name}</span>} headerStyle={{ minWidth: '15rem' }}></Column>
+
+
+                        <Column header="Chức năng" body={(d) => actionBodyTemplate(d)} headerStyle={{ minWidth: '10rem' }}></Column>
                     </DataTable>
 
-                    <Dialog visible={productDialog} style={{ width: '450px' }} header={editCate ? "Sửa danh mục sản phẩm" : "Thêm mới danh mục sản phẩm"} modal className="p-fluid" onHide={hideDialog}>
+                    <Dialog visible={productDialog} style={{ width: '450px' }} header={editSize ? "Sửa kích cỡ" : "Thêm mới kích cỡ"} modal className="p-fluid" onHide={hideDialog}>
                         <form onSubmit={handleSubmit(onSubmit)}>
                             <InputText {...register('id')} id="id" hidden />
                             <div className="field">
-                                <label htmlFor="name">Tên danh mục</label>
+                                <label htmlFor="code">Mã kích cỡ</label>
+                                <InputText
+                                    {...register('code', { required: true })}
+                                    id="code"
+                                    className={classNames({ 'p-invalid': errors.code })} />
+                            </div>
+                            <div className="field">
+                                <label htmlFor="name">Tên kích cỡ</label>
                                 <InputText
                                     {...register('name', { required: true })}
                                     id="name"
                                     className={classNames({ 'p-invalid': errors.name })} />
                             </div>
-                            <div className="field">
-                                <label htmlFor="image">Ảnh danh mục</label>
-                                <InputText
-                                    {...register('image', { required: true })}
-                                    id="image"
-                                    className={classNames({ 'p-invalid': errors.name })} />
-                            </div>
-                            <div className="field">
-                                <label htmlFor="description">Mô tả</label>
-                                <InputTextarea
-                                    {...register('des')}
-                                    id="des"
-                                    rows={3} cols={20} />
-                            </div>
+
                             <div className='flex align-items-center justify-content-center'>
                                 <Button label="Cancel" type='reset' icon="pi pi-times" text onClick={hideDialog} />
                                 <Button label="Save" type='submit' icon="pi pi-check" text />
@@ -271,9 +253,9 @@ const CategoryPage = () => {
                     <Dialog visible={deleteProductDialog} style={{ width: '450px' }} header="Confirm" modal footer={deleteProductDialogFooter} onHide={hideDeleteProductDialog}>
                         <div className="flex align-items-center justify-content-center">
                             <i className="pi pi-exclamation-triangle mr-3" style={{ fontSize: '2rem' }} />
-                            {category && (
+                            {size && (
                                 <span>
-                                    Are you sure you want to delete <b>{category.name}</b>?
+                                    Bạn có chắc chắn muốn xóa <b>{size.name}</b>?
                                 </span>
                             )}
                         </div>
@@ -282,7 +264,7 @@ const CategoryPage = () => {
                     <Dialog visible={deleteProductsDialog} style={{ width: '450px' }} header="Confirm" modal footer={deleteProductsDialogFooter} onHide={hideDeleteProductsDialog}>
                         <div className="flex align-items-center justify-content-center">
                             <i className="pi pi-exclamation-triangle mr-3" style={{ fontSize: '2rem' }} />
-                            {category && <span>Are you sure you want to delete the selected categorys?</span>}
+                            {size && <span>Are you sure you want to delete the selected sizes?</span>}
                         </div>
                     </Dialog>
                 </div>
@@ -292,4 +274,4 @@ const CategoryPage = () => {
 
 }
 
-export default CategoryPage
+export default SizePage
