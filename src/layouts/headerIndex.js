@@ -4,10 +4,17 @@ import React from 'react'
 import { useNavigate } from 'react-router-dom';
 const HeaderIndex = () => {
   const navigate = useNavigate();
+  const Logout = () => {
+    localStorage.removeItem('user')
+    navigate('/signin')
+  }
   const items = [
     {
       label: 'Products',
       icon: 'pi pi-book',
+      command: (event) => {
+        navigate('/products')
+      },
     },
     {
       label: 'Categorys',
@@ -18,6 +25,9 @@ const HeaderIndex = () => {
     },
     {
       label: 'Vouchers',
+      command: (event) => {
+        navigate('/vouchers')
+      },
     },
     {
       label: 'Thuộc tính',
@@ -112,8 +122,11 @@ const HeaderIndex = () => {
       ]
     },
     {
-      label: 'Quit',
-      icon: 'pi pi-fw pi-power-off'
+      label: 'Đăng xuất',
+      icon: 'pi pi-fw pi-power-off',
+      command: (event) => {
+        Logout()
+      },
     }
   ];
 

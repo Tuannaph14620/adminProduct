@@ -1,0 +1,353 @@
+import React, { useEffect, useRef, useState } from 'react'
+import { Button } from 'primereact/button';
+import { Column } from 'primereact/column';
+import { DataTable } from 'primereact/datatable';
+import { Dialog } from 'primereact/dialog';
+import { FileUpload } from 'primereact/fileupload';
+import { InputText } from 'primereact/inputtext';
+import { Toast } from 'primereact/toast';
+import { Toolbar } from 'primereact/toolbar';
+import { InputNumber } from 'primereact/inputnumber';
+import { Dropdown } from 'primereact/dropdown';
+import { addProduct, listProduct, removeProduct, updateProduct } from '../../api/product';
+import { InputTextarea } from 'primereact/inputtextarea';
+import moment from 'moment/moment';
+const ProductPage = () => {
+    let emptyProduct = {
+        id: null,
+        name: null,
+        des: null,
+        categoryId: null,
+        materialId: null,
+        height: null,
+        length: null,
+        weight: null,
+        width: null
+    };
+    const [products, setProducts] = useState(null);
+    const [productDialog, setProductDialog] = useState(false);
+    const [deleteProductDialog, setDeleteProductDialog] = useState(false);
+    const [deleteProductsDialog, setDeleteProductsDialog] = useState(false);
+    const [product, setProduct] = useState(emptyProduct);
+    const [editStatus, setEditStatus] = useState(false)
+    const [selectedProducts, setSelectedProducts] = useState(null);
+    const [globalFilter, setGlobalFilter] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const toast = useRef(null);
+    const dt = useRef(null);
+    useEffect(() => {
+        searchAll();
+    }, []);
+
+    const searchAll = () => {
+        setLoading(true);
+        listProduct(
+            {
+                textSearch: "",
+                minPrice: "",
+                maxPrice: "",
+                sizeIds: "",
+                colorIds: "",
+                pageReq: {
+                    page: 0,
+                    pageSize: 15,
+                    sortField: "",
+                    sortDirection: ""
+                }
+            }
+        ).then((res) => {
+            // const _paginator = { ...paginator };
+            // _paginator.total = res.total;
+            // setPaginator(_paginator);
+            const _data = res?.data.data
+            setProducts(_data);
+            setLoading(false);
+        });
+    };
+
+    const onSubmit = () => {
+        setLoading(true);
+        if (editStatus) {
+            updateProduct(product).then((res) => {
+                if (res) {
+                    searchAll();
+                    setLoading(false);
+                    setProduct(emptyProduct);
+                    setEditStatus(false)
+                    setProductDialog(false)
+                    toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Sửa thành công', life: 1000 });
+                }
+
+            })
+        } else {
+            addProduct(product).then((res) => {
+                if (res) {
+                    searchAll();
+                    setLoading(false);
+                    setProduct(emptyProduct);
+                    setProductDialog(false)
+                    toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Thêm thành công', life: 1000 });
+                }
+            })
+        }
+    }
+
+    const openNew = () => {
+        setProduct(emptyProduct)
+        setProductDialog(true);
+    };
+
+    const hideDialog = () => {
+        setProduct(emptyProduct);
+        setProductDialog(false);
+        setEditStatus(false)
+    };
+
+    const hideDeleteProductDialog = () => {
+        setDeleteProductDialog(false);
+    };
+
+    const hideDeleteProductsDialog = () => {
+        setDeleteProductsDialog(false);
+    };
+
+    const editProduct = (data) => {
+        setEditStatus(true);
+        setProduct({ ...data });
+        setProductDialog(true);
+    };
+
+
+    const confirmDeleteProduct = (product) => {
+        setProduct(product);
+        setDeleteProductDialog(true);
+    };
+    const deleteProduct = () => {
+        const ids = product?.id
+        removeProduct(ids).then((res) => {
+            if (res) {
+                searchAll();
+                // onChangeSelectedRows([]);
+                setDeleteProductDialog(false);
+                toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Xóa thành công', life: 1000 });
+            }
+        });
+    };
+
+    const exportCSV = () => {
+        dt.current.exportCSV();
+    };
+
+    const confirmDeleteSelected = () => {
+        setDeleteProductsDialog(true);
+    };
+
+    const deleteSelectedProducts = () => {
+        let _products = products.filter((val) => !selectedProducts.includes(val));
+        setProducts(_products);
+        setDeleteProductsDialog(false);
+        setSelectedProducts(null);
+        toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Products Deleted', life: 3000 });
+    };
+
+    const leftToolbarTemplate = () => {
+        return (
+            <React.Fragment>
+                <div className="my-2">
+                    <Button label="New" icon="pi pi-plus" severity="sucess" className="mr-2" onClick={openNew} />
+                    <Button label="Delete" icon="pi pi-trash" severity="danger" onClick={confirmDeleteSelected} disabled={!selectedProducts || !selectedProducts.length} />
+                </div>
+            </React.Fragment>
+        );
+    };
+
+    const rightToolbarTemplate = () => {
+        return (
+            <React.Fragment>
+                <FileUpload mode="basic" accept="image/*" maxFileSize={1000000} label="Import" chooseLabel="Import" className="mr-2 inline-block" />
+                <Button label="Export" icon="pi pi-upload" severity="help" onClick={exportCSV} />
+            </React.Fragment>
+        );
+    };
+
+
+    const actionBodyTemplate = (rowData) => {
+        return (
+            <>
+                <Button icon="pi pi-pencil" severity="success" rounded className="mr-2" onClick={() => editProduct(rowData)} />
+                <Button icon="pi pi-trash" severity="warning" rounded onClick={() => confirmDeleteProduct(rowData)} />
+            </>
+        );
+    };
+
+    const header = (
+        <div className="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
+            <h5 className="m-0">Sản phẩm</h5>
+            <span className="block mt-2 md:mt-0 p-input-icon-left">
+                <i className="pi pi-search" />
+                <InputText type="search" onChange={(e) => setGlobalFilter(e.target.value)} placeholder="Tìm kiếm" />
+            </span>
+        </div>
+    );
+    const deleteProductDialogFooter = (
+        <>
+            <Button label="No" icon="pi pi-times" text onClick={hideDeleteProductDialog} />
+            <Button label="Yes" icon="pi pi-check" text onClick={deleteProduct} />
+        </>
+    );
+    const deleteProductsDialogFooter = (
+        <>
+            <Button label="No" icon="pi pi-times" text onClick={hideDeleteProductsDialog} />
+            <Button label="Yes" icon="pi pi-check" text onClick={deleteSelectedProducts} />
+        </>
+    );
+
+    const setRowData = (value, field) => {
+
+        const table = { ...product };
+        switch (field) {
+            default: {
+                table[field] = value;
+            }
+        }
+
+        setProduct(table);
+    };
+
+    return (
+        <div className="grid crud-demo">
+            <div className="col-12">
+                <div className="card">
+                    <Toast ref={toast} />
+                    <Toolbar className="mb-4" left={leftToolbarTemplate} right={rightToolbarTemplate}></Toolbar>
+                    <DataTable
+                        ref={dt}
+                        value={products}
+                        selection={selectedProducts}
+                        onSelectionChange={(e) => setSelectedProducts(e.value)}
+                        dataKey="id"
+                        paginator
+                        rows={10}
+                        rowsPerPageOptions={[5, 10, 25]}
+                        className="datatable-responsive"
+                        paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+                        currentPageReportTemplate="Showing {first} to {last} of {totalRecords} products"
+                        globalFilter={globalFilter}
+                        emptyMessage="No products found."
+                        header={header}
+                        loading={loading}
+                        responsiveLayout="scroll"
+                    >
+                        <Column selectionMode="multiple" headerStyle={{ width: '4rem' }}></Column>
+                        <Column field="code" header="Mã giảm giá" sortable body={(d) => <span >{d.code}</span>} headerStyle={{ minWidth: '15rem' }}></Column>
+                        <Column field="des" header="Mô tả" sortable body={(d) => <span >{d.des}</span>} headerStyle={{ minWidth: '15rem' }}></Column>
+                        <Column field="startDate" header="Từ ngày" sortable body={(d) => <span >{moment(d.startDate).format('D-MM-YYYY')}</span>} headerStyle={{ minWidth: '15rem' }}></Column>
+                        <Column field="endDate" header="Đến ngày" sortable body={(d) => <span >{moment(d.endDate).format('D-MM-YYYY')}</span>} headerStyle={{ minWidth: '15rem' }}></Column>
+                        <Column field="percent" header="Phần trăm" sortable body={(d) => <span >{d.percent}%</span>} headerStyle={{ minWidth: '15rem' }}></Column>
+                        <Column field="amount" header="Gía tiền" sortable body={(d) => <span >{d?.amount?.toLocaleString('vi', { style: 'currency', currency: 'VND' })}</span>} headerStyle={{ minWidth: '15rem' }}></Column>
+                        <Column field="prerequisiteValue" header="Đơn giá tối thiểu" sortable body={(d) => <span >{d.prerequisiteValue?.toLocaleString('vi', { style: 'currency', currency: 'VND' })}</span>} headerStyle={{ minWidth: '15rem' }}></Column>
+                        <Column field="status" header="Trạng thái" sortable body={(d) => <span >{d.status}</span>} headerStyle={{ minWidth: '15rem' }}></Column>
+                        <Column header="Chức năng" body={(d) => actionBodyTemplate(d)} headerStyle={{ minWidth: '10rem' }}></Column>
+                    </DataTable>
+
+                    <Dialog visible={productDialog} style={{ width: '450px' }} header={editStatus ? "Sửa sản phẩm " : "Thêm mới sản phẩm"} modal className="p-fluid" onHide={hideDialog}>
+                        <form >
+                            <div className="field">
+                                <label htmlFor="name">Tên sản phẩm</label>
+                                <InputText
+                                    onChange={(event) => setRowData(event.target.value, "name")}
+                                    value={product.name}
+                                    id="name" />
+                            </div>
+                            <div className="field">
+                                <label htmlFor="des">Mô tả</label>
+                                <InputTextarea
+                                    id="des"
+                                    value={product.des}
+                                    onChange={(event) => setRowData(event.target.value, "des")}
+                                    rows={3} cols={20} />
+                            </div>
+                            <div className="field">
+                                <label htmlFor="height">Danh mục sản phẩm</label>
+                                <Dropdown
+                                    value={product?.categoryId}
+                                    options={[]}
+                                    showClear
+                                    filter
+                                    optionLabel="codeName"
+                                    optionValue="id"
+                                    onChange={(event) => setRowData(event.target.value, "categoryId")}
+                                />
+                            </div>
+                            <div className="field">
+                                <label htmlFor="height">Nguyên liệu</label>
+                                <Dropdown
+                                    value={product?.materialId}
+                                    options={[]}
+                                    showClear
+                                    filter
+                                    optionLabel="codeName"
+                                    optionValue="id"
+                                    onChange={(event) => setRowData(event.target.value, "materialId")}
+                                />
+                            </div>
+                            <div className="field">
+                                <label htmlFor="height">Height</label>
+                                <InputNumber
+                                    value={product.height}
+                                    onChange={(event) => setRowData(event.value, "height")}
+                                />
+                            </div>
+                            <div className="field">
+                                <label htmlFor="length">Length</label>
+                                <InputNumber
+                                    value={product.length}
+                                    onChange={(event) => setRowData(event.value, "length")}
+                                />
+                            </div>
+                            <div className="field">
+                                <label htmlFor="weight">Weight</label>
+                                <InputNumber
+                                    value={product.weight}
+                                    onChange={(event) => setRowData(event.value, "weight")}
+                                />
+                            </div>
+                            <div className="field">
+                                <label htmlFor="width">Width</label>
+                                <InputNumber
+                                    value={product.width}
+                                    onChange={(event) => setRowData(event.value, "width")}
+                                />
+                            </div>
+                            <div className='flex align-items-center justify-content-center'>
+                                <Button label="Hủy" type='reset' icon="pi pi-times" text onClick={hideDialog} />
+                                <Button label="Lưu" icon="pi pi-check" loading={loading} onClick={() => onSubmit()} />
+                            </div>
+                        </form>
+                    </Dialog>
+
+                    <Dialog visible={deleteProductDialog} style={{ width: '450px' }} header="Confirm" modal footer={deleteProductDialogFooter} onHide={hideDeleteProductDialog}>
+                        <div className="flex align-items-center justify-content-center">
+                            <i className="pi pi-exclamation-triangle mr-3" style={{ fontSize: '2rem' }} />
+                            {product && (
+                                <span>
+                                    Bạn có chắc chắn muốn xóa <b>{product.code}</b>?
+                                </span>
+                            )}
+                        </div>
+                    </Dialog>
+
+                    <Dialog visible={deleteProductsDialog} style={{ width: '450px' }} header="Confirm" modal footer={deleteProductsDialogFooter} onHide={hideDeleteProductsDialog}>
+                        <div className="flex align-items-center justify-content-center">
+                            <i className="pi pi-exclamation-triangle mr-3" style={{ fontSize: '2rem' }} />
+                            {product && <span>Are you sure you want to delete the selected products?</span>}
+                        </div>
+                    </Dialog>
+                </div>
+            </div>
+        </div>
+    );
+
+}
+
+export default ProductPage

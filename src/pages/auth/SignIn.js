@@ -1,19 +1,33 @@
-import React, { useState } from 'react'
+import React, { useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useDispatch, } from 'react-redux'
 import { Login } from '../../features/AuthSlice'
 import { InputText } from 'primereact/inputtext'
 import { Checkbox } from 'primereact/checkbox'
 import { Button } from 'primereact/button'
+import { signIn } from '../../api/auth'
+import { Toast } from 'primereact/toast';
+import { Navigate, useNavigate } from 'react-router-dom'
 const SignIn = () => {
   const { register, handleSubmit } = useForm()
-  const dispatch = useDispatch()
+  const [loading, setLoading] = useState(true);
   const [checked, setChecked] = useState(null);
+  const navigate = useNavigate();
+  const toast = useRef(null);
   const onSubmit = data => {
-    dispatch(Login(data))
+    setLoading(true)
+    signIn(data).then((res) => {
+      if (res) {
+        localStorage.setItem('user', JSON.stringify(res.data))
+        toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Thêm thành công', life: 1000 });
+        setLoading(false);
+        navigate('/')
+      }
+    })
   }
   return (
     <div className="flex align-items-center justify-content-center">
+      <Toast ref={toast} />
       <div className="surface-card p-4 shadow-2 border-round w-full lg:w-6">
         <div className="text-center mb-5">
           <img src="https://upload.wikimedia.org/wikipedia/vi/thumb/1/1d/Manchester_City_FC_logo.svg/1200px-Manchester_City_FC_logo.svg.png" alt="hyper" height={50} className="mb-3" />
