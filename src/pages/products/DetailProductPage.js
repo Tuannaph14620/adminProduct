@@ -1,62 +1,60 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { Button } from 'primereact/button';
+import { MultiSelect } from 'primereact/multiselect';
+import { Accordion, AccordionTab } from 'primereact/accordion';
 import { Column } from 'primereact/column';
 import { DataTable } from 'primereact/datatable';
 import { Dialog } from 'primereact/dialog';
-import { FileUpload } from 'primereact/fileupload';
 import { InputText } from 'primereact/inputtext';
 import { Toast } from 'primereact/toast';
 import { Toolbar } from 'primereact/toolbar';
 import { InputNumber } from 'primereact/inputnumber';
-import { Dropdown } from 'primereact/dropdown';
-import { addProduct, listProduct, removeProduct, updateProduct } from '../../api/product';
-import { InputTextarea } from 'primereact/inputtextarea';
+import { addProductOption, listOneProduct, listProductOption, removeProductOption, updateProductOption } from '../../api/product';
 import moment from 'moment/moment';
-import { listCate } from '../../api/category';
-import { listMaterial } from '../../api/material';
-import { useNavigate } from 'react-router-dom';
-const ProductPage = () => {
+import { listSize } from '../../api/size';
+import { listColor } from '../../api/color';
+import { useParams } from 'react-router-dom';
+const DeatailProductPage = (props) => {
+    const { id } = useParams();
     let emptyProduct = {
         id: null,
-        name: null,
-        des: null,
-        categoryId: null,
-        materialId: null,
-        height: null,
-        length: null,
-        weight: null,
-        width: null
+        productId: id,
+        colorId: null,
+        qty: null,
+        price: null,
+        image: null,
+        sizeId: null
     };
     const [products, setProducts] = useState(null);
+    const [productDetail, setProductDetail] = useState(null);
     const [productDialog, setProductDialog] = useState(false);
     const [deleteProductDialog, setDeleteProductDialog] = useState(false);
     const [deleteProductsDialog, setDeleteProductsDialog] = useState(false);
     const [product, setProduct] = useState(emptyProduct);
-    const [category, setCategory] = useState(null);
-    const [material, setMaterial] = useState(null);
+    const [color, setColor] = useState(null);
+    const [size, setSize] = useState(null);
     const [editStatus, setEditStatus] = useState(false)
     const [selectedProducts, setSelectedProducts] = useState(null);
     const [globalFilter, setGlobalFilter] = useState(null);
     const [loading, setLoading] = useState(true);
     const toast = useRef(null);
     const dt = useRef(null);
-    const navigator = useNavigate()
     useEffect(() => {
         searchAll();
     }, []);
 
     const searchAll = () => {
         setLoading(true);
-        listProduct(
+        listProductOption(
             {
-                "active": true,
-                "minPrice": "",
-                "maxPrice": "",
-                "pageReq": {
-                    "page": 0,
-                    "pageSize": 15,
-                    "sortField": "",
-                    "sortDirection": ""
+                sizeId: "",
+                colorId: "",
+                productId: id,
+                pageReq: {
+                    page: 0,
+                    pageSize: 10,
+                    sortField: "",
+                    sortDirection: ""
                 }
             }
         ).then((res) => {
@@ -67,10 +65,18 @@ const ProductPage = () => {
             setProducts(_data);
             setLoading(false);
         });
+        listOneProduct(id).then((res) => {
+            // const _paginator = { ...paginator };
+            // _paginator.total = res.total;
+            // setPaginator(_paginator);
+            const _data = res?.data.data
+            setProductDetail(_data);
+            setLoading(false);
+        })
     };
 
     const getAll = () => {
-        listCate(
+        listColor(
             {
                 id: "",
                 active: true,
@@ -87,12 +93,12 @@ const ProductPage = () => {
                 return {
                     ...e,
                     id: e.id,
-                    nameCate: e.name
+                    nameColor: e.name
                 }
             })
-            setCategory(_data);
+            setColor(_data);
         });
-        listMaterial(
+        listSize(
             {
                 id: "",
                 active: true,
@@ -109,17 +115,17 @@ const ProductPage = () => {
                 return {
                     ...e,
                     id: e.id,
-                    nameMaterial: e.name
+                    nameSize: e.name
                 }
             })
-            setMaterial(_data);
+            setSize(_data);
         })
     }
 
     const onSubmit = () => {
         setLoading(true);
         if (editStatus) {
-            updateProduct(product).then((res) => {
+            updateProductOption(product).then((res) => {
                 if (res) {
                     searchAll();
                     setLoading(false);
@@ -131,7 +137,7 @@ const ProductPage = () => {
 
             })
         } else {
-            addProduct(product).then((res) => {
+            addProductOption(product).then((res) => {
                 if (res) {
                     searchAll();
                     setLoading(false);
@@ -177,7 +183,7 @@ const ProductPage = () => {
     };
     const deleteProduct = () => {
         const ids = product?.id
-        removeProduct(ids).then((res) => {
+        removeProductOption(ids).then((res) => {
             if (res) {
                 searchAll();
                 // onChangeSelectedRows([]);
@@ -187,9 +193,6 @@ const ProductPage = () => {
         });
     };
 
-    const exportCSV = () => {
-        dt.current.exportCSV();
-    };
 
     const confirmDeleteSelected = () => {
         setDeleteProductsDialog(true);
@@ -214,21 +217,11 @@ const ProductPage = () => {
         );
     };
 
-    const rightToolbarTemplate = () => {
-        return (
-            <React.Fragment>
-                <FileUpload mode="basic" accept="image/*" maxFileSize={1000000} label="Import" chooseLabel="Import" className="mr-2 inline-block" />
-                <Button label="Export" icon="pi pi-upload" severity="help" onClick={exportCSV} />
-            </React.Fragment>
-        );
-    };
-
 
     const actionBodyTemplate = (rowData) => {
         return (
             <>
                 <Button icon="pi pi-pencil" severity="success" rounded className="mr-2" onClick={() => editProduct(rowData)} />
-                <Button icon="pi pi-eye" severity="secondary" rounded className="mr-2" onClick={() => navigator(`/products/${rowData.id}`)} />
                 <Button icon="pi pi-trash" severity="warning" rounded onClick={() => confirmDeleteProduct(rowData)} />
             </>
         );
@@ -236,7 +229,7 @@ const ProductPage = () => {
 
     const header = (
         <div className="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
-            <h4 className="m-0">Sản phẩm</h4>
+            <h4 className="m-0">Phân loại sản phẩm</h4>
             <span className="block mt-2 md:mt-0 p-input-icon-left">
                 <i className="pi pi-search" />
                 <InputText type="search" onChange={(e) => setGlobalFilter(e.target.value)} placeholder="Tìm kiếm" />
@@ -273,7 +266,27 @@ const ProductPage = () => {
             <div className="col-12">
                 <div className="card">
                     <Toast ref={toast} />
-                    <Toolbar className="mb-4" left={leftToolbarTemplate} right={rightToolbarTemplate}></Toolbar>
+                    <Toolbar className="mb-4" left={leftToolbarTemplate}></Toolbar>
+                    <Accordion activeIndex={0}>
+                        <AccordionTab header="Thông tin sản phẩm">
+                            <div className='flex align-items-start'>
+                                <div className='item1' style={{ marginRight: '200px' }}>
+                                    <p>Tên sản phẩm: {productDetail?.productName}</p>
+                                    <p>Danh mục: {productDetail?.categoryName}</p>
+                                    <p>Chất liệu: {productDetail?.materialName}</p>
+                                    <p>Trọng lượng áo: {productDetail?.weight}g</p>
+                                    <p>Giá cao nhất: {productDetail?.maxPrice}</p>
+                                </div>
+                                <div className='item2'>
+                                    <p>Độ dày của áo: {productDetail?.length}</p>
+                                    <p>Độ rộng của áo: {productDetail?.width}m</p>
+                                    <p>Chiều dài áo : {productDetail?.height}m</p>
+                                    <p>Giá thấp nhất: {productDetail?.maxPrice}</p>
+                                </div>
+                            </div>
+                            <p>Mô tả: {productDetail?.description}</p>
+                        </AccordionTab>
+                    </Accordion>
                     <DataTable
                         ref={dt}
                         value={products}
@@ -293,82 +306,64 @@ const ProductPage = () => {
                         responsiveLayout="scroll"
                     >
                         <Column selectionMode="multiple" headerStyle={{ width: '4rem' }}></Column>
-                        <Column field="name" header="Tên sản phẩm" sortable body={(d) => <span >{d.name}</span>} headerStyle={{ minWidth: '15rem' }}></Column>
-                        <Column field="categoryName" header="Tên danh mục" sortable body={(d) => <span >{d.categoryName}</span>} headerStyle={{ minWidth: '15rem' }}></Column>
-                        <Column field="materialName" header="Nguyên liệu" sortable body={(d) => <span >{d.materialName}</span>} headerStyle={{ minWidth: '15rem' }}></Column>
-                        <Column field="des" header="Mô tả" sortable body={(d) => <span >{d.des}%</span>} headerStyle={{ minWidth: '15rem' }}></Column>
-                        <Column field="maxPrice" header="minPrice" sortable body={(d) => <span >{d?.maxPrice?.toLocaleString('vi', { style: 'currency', currency: 'VND' })}</span>} headerStyle={{ minWidth: '15rem' }}></Column>
-                        <Column field="minPrice" header="minPrice" sortable body={(d) => <span >{d?.minPrice?.toLocaleString('vi', { style: 'currency', currency: 'VND' })}</span>} headerStyle={{ minWidth: '15rem' }}></Column>
-                        <Column header="Chức năng" body={(d) => actionBodyTemplate(d)} headerStyle={{ minWidth: '15rem' }}></Column>
+                        <Column field="code" header="Mã giảm giá" sortable body={(d) => <span >{d.code}</span>} headerStyle={{ minWidth: '15rem' }}></Column>
+                        <Column field="des" header="Mô tả" sortable body={(d) => <span >{d.des}</span>} headerStyle={{ minWidth: '15rem' }}></Column>
+                        <Column field="startDate" header="Từ ngày" sortable body={(d) => <span >{moment(d.startDate).format('D-MM-YYYY')}</span>} headerStyle={{ minWidth: '15rem' }}></Column>
+                        <Column field="endDate" header="Đến ngày" sortable body={(d) => <span >{moment(d.endDate).format('D-MM-YYYY')}</span>} headerStyle={{ minWidth: '15rem' }}></Column>
+                        <Column field="percent" header="Phần trăm" sortable body={(d) => <span >{d.percent}%</span>} headerStyle={{ minWidth: '15rem' }}></Column>
+                        <Column field="amount" header="Gía tiền" sortable body={(d) => <span >{d?.amount?.toLocaleString('vi', { style: 'currency', currency: 'VND' })}</span>} headerStyle={{ minWidth: '15rem' }}></Column>
+                        <Column field="prerequisiteValue" header="Đơn giá tối thiểu" sortable body={(d) => <span >{d.prerequisiteValue?.toLocaleString('vi', { style: 'currency', currency: 'VND' })}</span>} headerStyle={{ minWidth: '15rem' }}></Column>
+                        <Column field="status" header="Trạng thái" sortable body={(d) => <span >{d.status}</span>} headerStyle={{ minWidth: '15rem' }}></Column>
+                        <Column header="Chức năng" body={(d) => actionBodyTemplate(d)} headerStyle={{ minWidth: '10rem' }}></Column>
                     </DataTable>
 
                     <Dialog visible={productDialog} style={{ width: '450px' }} header={editStatus ? "Sửa sản phẩm " : "Thêm mới sản phẩm"} modal className="p-fluid" onHide={hideDialog}>
                         <form >
                             <div className="field">
-                                <label htmlFor="name">Tên sản phẩm</label>
+                                <label htmlFor="image">Hình ảnh</label>
                                 <InputText
-                                    onChange={(event) => setRowData(event.target.value, "name")}
-                                    value={product.name}
-                                    id="name" />
+                                    onChange={(event) => setRowData(event.target.value, "image")}
+                                    value={product.image}
+                                    id="image" />
                             </div>
                             <div className="field">
-                                <label htmlFor="des">Mô tả</label>
-                                <InputTextarea
-                                    id="des"
-                                    value={product.des}
-                                    onChange={(event) => setRowData(event.target.value, "des")}
-                                    rows={3} cols={20} />
-                            </div>
-                            <div className="field">
-                                <label htmlFor="height">Danh mục sản phẩm</label>
-                                <Dropdown
-                                    value={product?.categoryId}
-                                    options={category}
-                                    showClear
+                                <label htmlFor="height">Màu sắc</label>
+                                <MultiSelect
+                                    value={product?.colorId}
                                     filter
-                                    optionLabel="nameCate"
-                                    optionValue="id"
-                                    onChange={(event) => setRowData(event.target.value, "categoryId")}
-                                />
-                            </div>
-                            <div className="field">
-                                <label htmlFor="height">Nguyên liệu</label>
-                                <Dropdown
-                                    value={product?.materialId}
-                                    options={material}
                                     showClear
-                                    filter
-                                    optionLabel="nameMaterial"
+                                    className="flex p-align-center"
+                                    options={color}
+                                    optionLabel="nameColor"
                                     optionValue="id"
-                                    onChange={(event) => setRowData(event.target.value, "materialId")}
+                                    onChange={(event) => setRowData(event.target.value, "colorId")}
+                                ></MultiSelect>
+                            </div>
+                            <div className="field">
+                                <label htmlFor="height">Kích cỡ</label>
+                                <MultiSelect
+                                    value={product?.sizeId}
+                                    filter
+                                    showClear
+                                    className="flex p-align-center"
+                                    options={size}
+                                    optionLabel="nameSize"
+                                    optionValue="id"
+                                    onChange={(event) => setRowData(event.target.value, "sizeId")}
+                                ></MultiSelect>
+                            </div>
+                            <div className="field">
+                                <label htmlFor="qty">Số lượng</label>
+                                <InputNumber
+                                    value={product.qty}
+                                    onChange={(event) => setRowData(event.value, "qty")}
                                 />
                             </div>
                             <div className="field">
-                                <label htmlFor="height">Height</label>
+                                <label htmlFor="price">Đơn giá</label>
                                 <InputNumber
-                                    value={product.height}
-                                    onChange={(event) => setRowData(event.value, "height")}
-                                />
-                            </div>
-                            <div className="field">
-                                <label htmlFor="length">Length</label>
-                                <InputNumber
-                                    value={product.length}
-                                    onChange={(event) => setRowData(event.value, "length")}
-                                />
-                            </div>
-                            <div className="field">
-                                <label htmlFor="weight">Weight</label>
-                                <InputNumber
-                                    value={product.weight}
-                                    onChange={(event) => setRowData(event.value, "weight")}
-                                />
-                            </div>
-                            <div className="field">
-                                <label htmlFor="width">Width</label>
-                                <InputNumber
-                                    value={product.width}
-                                    onChange={(event) => setRowData(event.value, "width")}
+                                    value={product.price}
+                                    onChange={(event) => setRowData(event.value, "price")}
                                 />
                             </div>
                             <div className='flex align-items-center justify-content-center'>
@@ -402,4 +397,4 @@ const ProductPage = () => {
 
 }
 
-export default ProductPage
+export default DeatailProductPage

@@ -8,9 +8,9 @@ import { InputText } from 'primereact/inputtext';
 import { InputTextarea } from 'primereact/inputtextarea';
 import { Toast } from 'primereact/toast';
 import { Toolbar } from 'primereact/toolbar';
-import { classNames } from 'primereact/utils';
 import { addCate, listCate, removeCate, updateCate } from '../../api/category';
-import { useForm } from 'react-hook-form';
+import { Image } from 'primereact/image';
+import TemplateDemo from '../../component/FileUpload';
 const CategoryPage = () => {
     let emptyProduct = {
         id: null,
@@ -56,24 +56,22 @@ const CategoryPage = () => {
             setLoading(false);
         });
     };
-    const { register, handleSubmit, formState: { errors }, reset } = useForm()
 
-    const onSubmit = data => {
+    const onSubmit = () => {
         setLoading(true);
         if (editCate) {
-            updateCate(data).then((res) => {
+            updateCate(category).then((res) => {
                 searchAll();
                 setLoading(false);
+                setCategory(emptyProduct)
                 setProductDialog(false)
-                reset();
                 toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Sửa thành công', life: 1000 });
             })
         } else {
-            addCate(data).then((res) => {
+            addCate(category).then((res) => {
                 searchAll();
                 setLoading(false);
                 setProductDialog(false)
-                reset();
                 toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Thêm thành công', life: 1000 });
             })
         }
@@ -106,8 +104,8 @@ const CategoryPage = () => {
             des: category?.des,
             image: category?.image
         }
-        reset(data)
         setEditCate(true)
+        setCategory({ ...data });
         setProductDialog(true);
     };
 
@@ -204,6 +202,21 @@ const CategoryPage = () => {
             <Button label="Yes" icon="pi pi-check" text onClick={deleteSelectedProducts} />
         </>
     );
+    const setRowData = (value, field) => {
+        const table = { ...category };
+        switch (field) {
+            default: {
+                table[field] = value;
+            }
+        }
+        setCategory(table);
+    };
+
+    const callbackFunction = (childData) => {
+        const _image = { ...category }
+        _image.image = childData
+        setCategory(_image)
+    }
 
     return (
         <div className="grid crud-demo">
@@ -237,33 +250,31 @@ const CategoryPage = () => {
                         <Column header="Chức năng" body={(d) => actionBodyTemplate(d)} headerStyle={{ minWidth: '10rem' }}></Column>
                     </DataTable>
 
-                    <Dialog visible={productDialog} style={{ width: '450px' }} header={editCate ? "Sửa danh mục sản phẩm" : "Thêm mới danh mục sản phẩm"} modal className="p-fluid" onHide={hideDialog}>
-                        <form onSubmit={handleSubmit(onSubmit)}>
-                            <InputText {...register('id')} id="id" hidden />
+                    <Dialog visible={productDialog} style={{ width: '600px' }} header={editCate ? "Sửa danh mục sản phẩm" : "Thêm mới danh mục sản phẩm"} modal className="p-fluid" onHide={hideDialog}>
+                        <form >
                             <div className="field">
                                 <label htmlFor="name">Tên danh mục</label>
                                 <InputText
-                                    {...register('name', { required: true })}
-                                    id="name"
-                                    className={classNames({ 'p-invalid': errors.name })} />
+                                    value={category.name}
+                                    onChange={(event) => setRowData(event.target.value, "name")}
+                                    id="name" />
                             </div>
-                            <div className="field">
+                            <div className="field ">
                                 <label htmlFor="image">Ảnh danh mục</label>
-                                <InputText
-                                    {...register('image', { required: true })}
-                                    id="image"
-                                    className={classNames({ 'p-invalid': errors.name })} />
+                                <TemplateDemo parentCallback={callbackFunction}></TemplateDemo>
+                                <Image hidden={!editCate} src={category?.image} alt="Image" width="100" />
                             </div>
                             <div className="field">
                                 <label htmlFor="description">Mô tả</label>
                                 <InputTextarea
-                                    {...register('des')}
+                                    onChange={(event) => setRowData(event.target.value, "des")}
+                                    value={category.des}
                                     id="des"
                                     rows={3} cols={20} />
                             </div>
                             <div className='flex align-items-center justify-content-center'>
                                 <Button label="Cancel" type='reset' icon="pi pi-times" text onClick={hideDialog} />
-                                <Button label="Save" type='submit' icon="pi pi-check" text />
+                                <Button label="Save" type='submit' icon="pi pi-check" loading={loading} onClick={() => onSubmit()} />
                             </div>
                         </form>
                     </Dialog>

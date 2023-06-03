@@ -10,6 +10,7 @@ import MaterialPage from './pages/material/MaterialPage';
 import VoucherPage from './pages/voucher/VoucherPage';
 import PrivateRouter from './layouts/PrivateRouter';
 import ProductPage from './pages/products/ProductPage';
+import DeatailProductPage from './pages/products/DetailProductPage';
 
 
 function App() {
@@ -21,6 +22,7 @@ function App() {
           <Route index element={<Navigate to="dashboard" />} />
           <Route path='dashboard' />
           <Route path='products' element={<ProductPage />}></Route>
+          <Route path='products/:id' element={<DeatailProductPage />}></Route>
           <Route path='categorys' element={<CategoryPage />}></Route>
           <Route path='colors' element={<ColorPage />}></Route>
           <Route path='size' element={<SizePage />}></Route>
