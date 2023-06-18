@@ -8,7 +8,7 @@ export const signIn = (user) => {
     const formData = new FormData();
     formData.append('email', user.email);
     formData.append('password', user.password);
-    const url = `/api/v1/login`
+    const url = `https://datn-su2023.herokuapp.com/api/v1/login`
     return instance.post(url, formData)
 }
 

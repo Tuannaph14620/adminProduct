@@ -1,18 +1,26 @@
 import instance from "./instance";
 
-export const addOrder = (order)=>{
-    const url = `/orders`
+export const listOrder = (params) => {
+    const url = `/api/v1/admin/order/search`
+    return instance.post(url, params)
+}
+export const listOneOrder = (id) => {
+    const url = `/api/v1/admin/order/detail`
+    return instance.get(url)
+}
+export const addOrder = (order) => {
+    const url = `/api/v1/admin/order/create`
     return instance.post(url, order)
 }
-export const listOrder = ()=>{
-    const url = `/orders`
-    return instance.get(url)
+export const removeOrder = (id) => {
+    const url = `/api/v1/admin/order/delete`
+    return instance.post(url, id)
 }
-export const listOneOrder = (idOrder)=>{
-    const url = `/orders/${idOrder}`
-    return instance.get(url)
+export const updateOrder = (order) => {
+    const url = `/api/v1/admin/order/update`
+    return instance.post(url, order)
 }
-export const removeOrder = (idOrder)=>{
-    const url = `/orders/${idOrder}`
-    return instance.delete(url)
+export const listOrderStatus = () => {
+    const url = `/api/v1/admin/order/listOrderStatus`
+    return instance.get(url)
 }

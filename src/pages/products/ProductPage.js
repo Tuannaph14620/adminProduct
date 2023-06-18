@@ -296,7 +296,8 @@ const ProductPage = () => {
                         <Column field="name" header="Tên sản phẩm" sortable body={(d) => <span >{d.name}</span>} headerStyle={{ minWidth: '15rem' }}></Column>
                         <Column field="categoryName" header="Tên danh mục" sortable body={(d) => <span >{d.categoryName}</span>} headerStyle={{ minWidth: '15rem' }}></Column>
                         <Column field="materialName" header="Nguyên liệu" sortable body={(d) => <span >{d.materialName}</span>} headerStyle={{ minWidth: '15rem' }}></Column>
-                        <Column field="des" header="Mô tả" sortable body={(d) => <span >{d.des}%</span>} headerStyle={{ minWidth: '15rem' }}></Column>
+                        <Column field="des" header="Mô tả" sortable body={(d) => <span >{d.des}</span>} headerStyle={{ minWidth: '15rem' }}></Column>
+                        <Column field="Số lượng" header="qty" sortable body={(d) => <span >{d?.qty}</span>} headerStyle={{ minWidth: '15rem' }}></Column>
                         <Column field="maxPrice" header="minPrice" sortable body={(d) => <span >{d?.maxPrice?.toLocaleString('vi', { style: 'currency', currency: 'VND' })}</span>} headerStyle={{ minWidth: '15rem' }}></Column>
                         <Column field="minPrice" header="minPrice" sortable body={(d) => <span >{d?.minPrice?.toLocaleString('vi', { style: 'currency', currency: 'VND' })}</span>} headerStyle={{ minWidth: '15rem' }}></Column>
                         <Column header="Chức năng" body={(d) => actionBodyTemplate(d)} headerStyle={{ minWidth: '15rem' }}></Column>

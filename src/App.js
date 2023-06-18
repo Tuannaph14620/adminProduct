@@ -11,6 +11,9 @@ import VoucherPage from './pages/voucher/VoucherPage';
 import PrivateRouter from './layouts/PrivateRouter';
 import ProductPage from './pages/products/ProductPage';
 import DeatailProductPage from './pages/products/DetailProductPage';
+import UserPage from './pages/users/UserPage';
+import OrderPage from './pages/order/OrderPage';
+import OrderManager from './pages/order/OrderManager';
 
 
 function App() {
@@ -28,6 +31,8 @@ function App() {
           <Route path='size' element={<SizePage />}></Route>
           <Route path='material' element={<MaterialPage />}></Route>
           <Route path='vouchers' element={<VoucherPage />}></Route>
+          <Route path='users' element={<UserPage />}></Route>
+          <Route path='orders' element={<OrderManager />}></Route>
         </Route>
       </Routes>
     </div>

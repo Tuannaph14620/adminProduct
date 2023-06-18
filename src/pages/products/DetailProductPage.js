@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { Button } from 'primereact/button';
-import { MultiSelect } from 'primereact/multiselect';
 import { Accordion, AccordionTab } from 'primereact/accordion';
 import { Column } from 'primereact/column';
 import { DataTable } from 'primereact/datatable';
@@ -10,10 +9,12 @@ import { Toast } from 'primereact/toast';
 import { Toolbar } from 'primereact/toolbar';
 import { InputNumber } from 'primereact/inputnumber';
 import { addProductOption, listOneProduct, listProductOption, removeProductOption, updateProductOption } from '../../api/product';
-import moment from 'moment/moment';
 import { listSize } from '../../api/size';
 import { listColor } from '../../api/color';
 import { useParams } from 'react-router-dom';
+import { Dropdown } from 'primereact/dropdown';
+import { Image } from 'primereact/image';
+import TemplateDemo from '../../component/FileUpload';
 const DeatailProductPage = (props) => {
     const { id } = useParams();
     let emptyProduct = {
@@ -50,6 +51,7 @@ const DeatailProductPage = (props) => {
                 sizeId: "",
                 colorId: "",
                 productId: id,
+                active: true,
                 pageReq: {
                     page: 0,
                     pageSize: 10,
@@ -260,6 +262,11 @@ const DeatailProductPage = (props) => {
 
         setProduct(table);
     };
+    const callbackFunction = (childData) => {
+        const _image = { ...product }
+        _image.image = childData
+        setProduct(_image)
+    }
 
     return (
         <div className="grid crud-demo">
@@ -275,13 +282,13 @@ const DeatailProductPage = (props) => {
                                     <p>Danh mục: {productDetail?.categoryName}</p>
                                     <p>Chất liệu: {productDetail?.materialName}</p>
                                     <p>Trọng lượng áo: {productDetail?.weight}g</p>
-                                    <p>Giá cao nhất: {productDetail?.maxPrice}</p>
+                                    <p>Giá cao nhất: {productDetail?.maxPrice?.toLocaleString('vi', { style: 'currency', currency: 'VND' })}</p>
                                 </div>
                                 <div className='item2'>
                                     <p>Độ dày của áo: {productDetail?.length}</p>
                                     <p>Độ rộng của áo: {productDetail?.width}m</p>
                                     <p>Chiều dài áo : {productDetail?.height}m</p>
-                                    <p>Giá thấp nhất: {productDetail?.maxPrice}</p>
+                                    <p>Giá thấp nhất: {productDetail?.minPrice?.toLocaleString('vi', { style: 'currency', currency: 'VND' })}</p>
                                 </div>
                             </div>
                             <p>Mô tả: {productDetail?.description}</p>
@@ -306,14 +313,11 @@ const DeatailProductPage = (props) => {
                         responsiveLayout="scroll"
                     >
                         <Column selectionMode="multiple" headerStyle={{ width: '4rem' }}></Column>
-                        <Column field="code" header="Mã giảm giá" sortable body={(d) => <span >{d.code}</span>} headerStyle={{ minWidth: '15rem' }}></Column>
-                        <Column field="des" header="Mô tả" sortable body={(d) => <span >{d.des}</span>} headerStyle={{ minWidth: '15rem' }}></Column>
-                        <Column field="startDate" header="Từ ngày" sortable body={(d) => <span >{moment(d.startDate).format('D-MM-YYYY')}</span>} headerStyle={{ minWidth: '15rem' }}></Column>
-                        <Column field="endDate" header="Đến ngày" sortable body={(d) => <span >{moment(d.endDate).format('D-MM-YYYY')}</span>} headerStyle={{ minWidth: '15rem' }}></Column>
-                        <Column field="percent" header="Phần trăm" sortable body={(d) => <span >{d.percent}%</span>} headerStyle={{ minWidth: '15rem' }}></Column>
-                        <Column field="amount" header="Gía tiền" sortable body={(d) => <span >{d?.amount?.toLocaleString('vi', { style: 'currency', currency: 'VND' })}</span>} headerStyle={{ minWidth: '15rem' }}></Column>
-                        <Column field="prerequisiteValue" header="Đơn giá tối thiểu" sortable body={(d) => <span >{d.prerequisiteValue?.toLocaleString('vi', { style: 'currency', currency: 'VND' })}</span>} headerStyle={{ minWidth: '15rem' }}></Column>
-                        <Column field="status" header="Trạng thái" sortable body={(d) => <span >{d.status}</span>} headerStyle={{ minWidth: '15rem' }}></Column>
+                        <Column field="code" header="Số lượng" sortable body={(d) => <span >{d.qty}</span>} headerStyle={{ minWidth: '15rem' }}></Column>
+                        <Column field="image" header="Hình ảnh" sortable body={(d) => <img src={d.image} className="shadow-2" width="100"></img>} headerStyle={{ minWidth: '15rem' }}></Column>
+                        <Column field="price" header="Giá tiền" sortable body={(d) => <span >{d?.price?.toLocaleString('vi', { style: 'currency', currency: 'VND' })}</span>} headerStyle={{ minWidth: '15rem' }}></Column>
+                        <Column field="color" header="Màu sắc" sortable body={(d) => <span >{d.colorName}</span>} headerStyle={{ minWidth: '15rem' }}></Column>
+                        <Column field="size" header="Kích cỡ" sortable body={(d) => <span >{d.sizeName}</span>} headerStyle={{ minWidth: '15rem' }}></Column>
                         <Column header="Chức năng" body={(d) => actionBodyTemplate(d)} headerStyle={{ minWidth: '10rem' }}></Column>
                     </DataTable>
 
@@ -321,14 +325,12 @@ const DeatailProductPage = (props) => {
                         <form >
                             <div className="field">
                                 <label htmlFor="image">Hình ảnh</label>
-                                <InputText
-                                    onChange={(event) => setRowData(event.target.value, "image")}
-                                    value={product.image}
-                                    id="image" />
+                                <TemplateDemo parentCallback={callbackFunction}></TemplateDemo>
+                                <Image hidden={!editStatus} src={product?.image} width="100" />
                             </div>
                             <div className="field">
                                 <label htmlFor="height">Màu sắc</label>
-                                <MultiSelect
+                                <Dropdown
                                     value={product?.colorId}
                                     filter
                                     showClear
@@ -337,11 +339,11 @@ const DeatailProductPage = (props) => {
                                     optionLabel="nameColor"
                                     optionValue="id"
                                     onChange={(event) => setRowData(event.target.value, "colorId")}
-                                ></MultiSelect>
+                                ></Dropdown>
                             </div>
                             <div className="field">
                                 <label htmlFor="height">Kích cỡ</label>
-                                <MultiSelect
+                                <Dropdown
                                     value={product?.sizeId}
                                     filter
                                     showClear
@@ -350,7 +352,7 @@ const DeatailProductPage = (props) => {
                                     optionLabel="nameSize"
                                     optionValue="id"
                                     onChange={(event) => setRowData(event.target.value, "sizeId")}
-                                ></MultiSelect>
+                                ></Dropdown>
                             </div>
                             <div className="field">
                                 <label htmlFor="qty">Số lượng</label>

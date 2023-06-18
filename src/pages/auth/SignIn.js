@@ -19,7 +19,7 @@ const SignIn = () => {
     signIn(data).then((res) => {
       if (res) {
         localStorage.setItem('user', JSON.stringify(res.data))
-        toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Thêm thành công', life: 1000 });
+        toast.current?.show({ severity: 'success', summary: 'Successful', detail: 'Thêm thành công', life: 1000 });
         setLoading(false);
         navigate('/')
       }
