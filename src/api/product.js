@@ -36,3 +36,7 @@ export const updateProductOption = (productOption) => {
     const url = `/api/v1/admin/productOption/update`
     return instance.post(url, productOption)
 }
+export const listProductByName = (name) => {
+    const url = `/api/v1/admin/productOption/findByName`
+    return instance.post(url, name)
+}

@@ -12,7 +12,10 @@ import { addUser, listUser, removeCate, updateCate } from '../../api/user';
 import { RadioButton } from 'primereact/radiobutton';
 import moment from 'moment';
 import { Calendar } from 'primereact/calendar';
-const UserPage = () => {
+import { listProduct, listProductByName } from '../../api/product';
+import { Dropdown } from 'primereact/dropdown';
+import { InputNumber } from 'primereact/inputnumber';
+const ShopPage = () => {
     let emptyProduct = {
         id: null,
         firstName: null,
@@ -25,6 +28,8 @@ const UserPage = () => {
         dob: null
     };
     const [users, setUsers] = useState(null);
+    const [product, setProduct] = useState(null)
+    const [productSelected, setProductSelected] = useState([])
     const [productDialog, setProductDialog] = useState(false);
     const [deleteProductDialog, setDeleteProductDialog] = useState(false);
     const [deleteProductsDialog, setDeleteProductsDialog] = useState(false);
@@ -32,11 +37,13 @@ const UserPage = () => {
     const [statusEdit, setStatusEdit] = useState(false)
     const [selectedProducts, setSelectedProducts] = useState(null);
     const [globalFilter, setGlobalFilter] = useState(null);
+    const [value3, setValue3] = useState(1);
     const [loading, setLoading] = useState(true);
     const toast = useRef(null);
     const dt = useRef(null);
     useEffect(() => {
         searchAll();
+        getAll();
     }, []);
 
     const searchAll = () => {
@@ -82,6 +89,29 @@ const UserPage = () => {
             })
         }
 
+    }
+
+    const getAll = () => {
+        listProductByName(
+            {
+                "search": "",
+                "pageReq": {
+                    "page": 0,
+                    "pageSize": 15,
+                    "sortField": "",
+                    "sortDirection": ""
+                }
+            }
+        ).then((res) => {
+            const _data = res?.data.data.map((e) => {
+                return {
+                    ...e,
+                    id: e.id,
+                    productName: e.productName + '-' + e.sizeName + '-' + e.colorName
+                }
+            })
+            setProduct(_data);
+        });
     }
 
     const openNew = () => {
@@ -192,7 +222,16 @@ const UserPage = () => {
             <h4 className="m-0">Tài khoản</h4>
             <span className="block mt-2 md:mt-0 p-input-icon-left">
                 <i className="pi pi-search" />
-                <InputText type="search" onChange={(e) => setGlobalFilter(e.target.value)} placeholder="Tìm kiếm" />
+                <Dropdown
+                    style={{ width: '300px' }}
+                    value={product?.categoryId}
+                    options={product}
+                    showClear
+                    filter
+                    optionLabel="productName"
+                    optionValue="id"
+                    onChange={(event) => { setProductOrder(event.target.value) }}
+                />
             </span>
         </div>
     );
@@ -218,55 +257,85 @@ const UserPage = () => {
         setUser(table);
     };
 
+    const setProductOrder = (value) => {
+        const dataProduct = product?.find(({ id }) => id === value)
+        const a = { ...dataProduct }
+        a['quantity'] = 1
+        const table = [...productSelected];
+        table.push(a)
+        setProductSelected(table);
+    };
+
+    const setRowProductOrder = (value, field, rowIndex) => {
+        const index = rowIndex.rowIndex;
+        const table = [...productSelected];
+        const row = { ...table[index] };
+
+        switch (field) {
+            default: {
+                row[field] = value;
+                table[index] = row;
+            }
+        }
+        console.log(table);
+        setProductSelected(table);
+    };
+    function sumArray(mang) {
+        let sum = 0;
+        let i = 0;
+        while (i < mang.length) {
+            sum += mang[i];
+            i++;
+        }
+        return sum;
+    }
     return (
         <div className="grid crud-demo">
             <div className="col-12">
                 <div className="card">
                     <Toast ref={toast} />
                     <Toolbar className="mb-4" left={leftToolbarTemplate} right={rightToolbarTemplate}></Toolbar>
-
-                    <DataTable
-                        ref={dt}
-                        value={users}
-                        selection={selectedProducts}
-                        onSelectionChange={(e) => setSelectedProducts(e.value)}
-                        dataKey="id"
-                        paginator
-                        rows={10}
-                        rowsPerPageOptions={[5, 10, 25]}
-                        className="datatable-responsive"
-                        paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
-                        currentPageReportTemplate="Showing {first} to {last} of {totalRecords} users"
-                        globalFilter={globalFilter}
-                        emptyMessage="No users found."
-                        header={header}
-                        loading={loading}
-                        responsiveLayout="scroll"
-                    >
-                        <Column selectionMode="multiple" headerStyle={{ width: '4rem' }}></Column>
-                        <Column field="name" header="Họ tên" body={(d) => <span >{`${d.firstName} ${d.lastName}`}</span>} headerStyle={{ minWidth: '15rem' }}></Column>
-                        <Column field="email" header="Email" body={(d) => <span >{d.email}</span>} headerStyle={{ minWidth: '15rem' }}></Column>
-                        <Column field="phone" header="Số điện thoại" body={(d) => <span >{d.phone}</span>} headerStyle={{ minWidth: '15rem' }}></Column>
-                        <Column field="birthday" header="Ngày sinh" body={(d) => <span >{moment(d.dob).format('D-MM-YYYY')}</span>} headerStyle={{ minWidth: '15rem' }}></Column>
-                        <Column field="gender" header="Giới tính" body={(d) => <span >{d.gender ? 'Nữ' : 'Nam'}</span>} headerStyle={{ minWidth: '15rem' }}></Column>
-                        {/* <Column header="Chức năng" body={(d) => actionBodyTemplate(d)} headerStyle={{ minWidth: '10rem' }}></Column> */}
-                    </DataTable>
-
-                    <Dialog visible={productDialog} style={{ width: '600px' }} header={statusEdit ? "Sửa danh mục sản phẩm" : "Thêm mới danh mục sản phẩm"} modal className="p-fluid" onHide={hideDialog}>
-                        <form >
+                    <div className='flex justify-content-between mr-6'>
+                        <DataTable
+                            ref={dt}
+                            value={productSelected}
+                            selection={selectedProducts}
+                            onSelectionChange={(e) => setSelectedProducts(e.value)}
+                            dataKey="id"
+                            className="datatable-responsive"
+                            paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+                            currentPageReportTemplate="Showing {first} to {last} of {totalRecords} users"
+                            globalFilter={globalFilter}
+                            emptyMessage="No users found."
+                            header={header}
+                            loading={loading}
+                            responsiveLayout="scroll"
+                        >
+                            <Column field="productName" header="Tên sản phẩm" body={(d) => <span >{d.productName}</span>} headerStyle={{ minWidth: '15rem' }}></Column>
+                            <Column field="colorName" header="Màu sắc" body={(d) => <span >{d.colorName}</span>} headerStyle={{ minWidth: '10rem' }}></Column>
+                            <Column field="sizeName" header="Kích cỡ" body={(d) => <span >{d.sizeName}</span>} headerStyle={{ minWidth: '10rem' }}></Column>
+                            <Column
+                                headerStyle={{ minWidth: '10rem' }}
+                                field="qty"
+                                header="Số lượng"
+                                body={(d, index) => <InputNumber
+                                    inputId="minmax-buttons"
+                                    value={value3}
+                                    onValueChange={(e) => { setRowProductOrder(e.value, 'quantity', index) }}
+                                    mode="decimal"
+                                    showButtons min={0} max={100} />}
+                            ></Column>
+                            <Column field="price" header="Giá tiền" body={(d) => <span >{d.price}</span>} headerStyle={{ minWidth: '12rem' }}></Column>
+                            <Column field="price" header="Thành tiền" body={(d) => <span >{d.price * d?.quantity}</span>} headerStyle={{ minWidth: '12rem' }}></Column>
+                            {/* <Column header="Chức năng" body={(d) => actionBodyTemplate(d)} headerStyle={{ minWidth: '10rem' }}></Column> */}
+                        </DataTable>
+                        <form className="p-fluid">
                             <div className="field">
-                                <label htmlFor="firstName">Tên</label>
+                                <label htmlFor="fullname">Tên</label>
                                 <InputText
-                                    value={user.firstName}
-                                    onChange={(event) => setRowData(event.target.value, "firstName")}
-                                    id="firstName" />
-                            </div>
-                            <div className="field">
-                                <label htmlFor="lastName">Họ</label>
-                                <InputText
-                                    value={user.lastName}
-                                    onChange={(event) => setRowData(event.target.value, "lastName")}
-                                    id="lastName" />
+                                    value={user.fullname}
+                                    onChange={(event) => setRowData(event.target.value, "fullname")}
+                                    id="fullname" />
                             </div>
                             <div className="field">
                                 <label htmlFor="email">Email</label>
@@ -276,58 +345,19 @@ const UserPage = () => {
                                     id="email" />
                             </div>
                             <div className="field">
-                                <label htmlFor="password">Mật khẩu</label>
-                                <InputText
-                                    value={user.password}
-                                    onChange={(event) => setRowData(event.target.value, "password")}
-                                    id="password" />
-                            </div>
-                            <div className="field">
                                 <label htmlFor="phone">Số điện thoại</label>
                                 <InputText
                                     value={user.phone}
                                     onChange={(event) => setRowData(event.target.value, "phone")}
                                     id="phone" />
                             </div>
-                            <div className="grid formgrid p-fluid fluid mb-2">
-                                <div className="col-12 flex gap-8 align-items-center">
-                                    <div >
-                                        <span className="">
-                                            <RadioButton
-                                                inputId="city1"
-                                                name="city"
-                                                onChange={() => setRowData(true, "gender")}
-                                                checked={user?.gender === true}
-                                            />
-                                            <label className='ml-2' htmlFor="city1">Nữ</label>
-                                        </span>
-                                    </div>
-                                    <div >
-                                        <span className="">
-                                            <RadioButton
-                                                inputId="city1"
-                                                name="city"
-                                                onChange={() => setRowData(false, "gender")}
-                                                checked={user?.gender === false}
-                                            />
-                                            <label className='ml-2' htmlFor="city1">Nam</label>
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="field">
-                                <label htmlFor="dob">Ngày sinh</label>
-                                <Calendar
-                                    value={user?.dob}
-                                    onChange={(event) => setRowData(event.target.value, "dob")}
-                                    showIcon placeholder="dd/mm/yyyy" />
-                            </div>
+                            <div>Gía trị đơn hàng:{sumArray(productSelected.map((e) => e.price * e.quantity))?.toLocaleString('vi', { style: 'currency', currency: 'VND' })}</div>
                             <div className='flex align-items-center justify-content-center'>
                                 <Button label="Cancel" type='reset' icon="pi pi-times" text onClick={hideDialog} />
                                 <Button label="Save" type='submit' icon="pi pi-check" loading={loading} onClick={() => onSubmit()} />
                             </div>
                         </form>
-                    </Dialog>
+                    </div>
 
                     <Dialog visible={deleteProductDialog} style={{ width: '450px' }} header="Confirm" modal footer={deleteProductDialogFooter} onHide={hideDeleteProductDialog}>
                         <div className="flex align-items-center justify-content-center">
@@ -353,4 +383,4 @@ const UserPage = () => {
 
 }
 
-export default UserPage
+export default ShopPage

@@ -14,6 +14,8 @@ import DeatailProductPage from './pages/products/DetailProductPage';
 import UserPage from './pages/users/UserPage';
 import OrderPage from './pages/order/OrderPage';
 import OrderManager from './pages/order/OrderManager';
+import OrderDetailPage from './pages/order/OrderDetailPage';
+import ShopPage from './pages/shop/shopPage';
 
 
 function App() {
@@ -33,6 +35,8 @@ function App() {
           <Route path='vouchers' element={<VoucherPage />}></Route>
           <Route path='users' element={<UserPage />}></Route>
           <Route path='orders' element={<OrderManager />}></Route>
+          <Route path='orders/:id' element={<OrderDetailPage />}></Route>
+          <Route path='shop' element={<ShopPage />}></Route>
         </Route>
       </Routes>
     </div>

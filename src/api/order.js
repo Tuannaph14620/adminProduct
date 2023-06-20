@@ -5,7 +5,7 @@ export const listOrder = (params) => {
     return instance.post(url, params)
 }
 export const listOneOrder = (id) => {
-    const url = `/api/v1/admin/order/detail`
+    const url = `/api/v1/admin/order/detail/${id}`
     return instance.get(url)
 }
 export const addOrder = (order) => {

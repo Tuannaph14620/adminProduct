@@ -21,42 +21,34 @@ import { Calendar } from 'primereact/calendar';
 import { classNames } from 'primereact/utils';
 import { listProvince } from '../../api/ghn';
 import { Dropdown } from 'primereact/dropdown';
+import { useNavigate } from 'react-router-dom';
 const OrderPage = () => {
     let emptyProduct = {
-        orderRequest: {
-            id: null,
-            customerInfo: {
-                nameOfRecipient: null,
-                phoneNumber: null,
-                email: null,
-                provinceId: null,
-                provinceName: null,
-                districtId: null,
-                districtName: null,
-                wardCode: null,
-                wardName: null,
-                shipServiceId: null,
-                shipServiceName: null,
-                address: null,
-                addressDetail: null
-            },
-            paymentMethod: null,
-            note: null,
-            shipPrice: null,
-            shopPriceTotal: null,
-            discountPrice: null,
-            voucherCode: null,
-            discount: 0,
-            payed: true
-        },
-        productOrderRequest: [
+        "id": "",
+        "nameOfRecipient": "Nguyễn Văn Tuấn",
+        "phoneNumber": "0359233895",
+        "email": "vantuan@gmail.com",
+        "paymentMethod": "COD",
+        "note": "Không note",
+        "shipPrice": "29000",
+        "shopPriceTotal": "7500000",
+        "discountPrice": "0",
+        "voucherCode": "",
+        "discount": 0,
+        "payed": true,
+        "productOrderRequest": [
             {
-                id: null,
-                qty: 0
+                "id": "0ba875bc-8774-40ae-bdf0-51431ca7a4e0",
+                "qty": 3
+            },
+            {
+                "id": "54317494-71c7-4e3a-99fb-1412730390e3",
+                "qty": 1
             }
         ]
     }
     const refFilterPanel = useRef(null);
+    const navigator = useNavigate();
     const [_validate, setValidate] = useState({});
     const [orders, setOrders] = useState(null);
     const [productDialog, setProductDialog] = useState(false);
@@ -237,6 +229,7 @@ const OrderPage = () => {
         return (
             <>
                 <Button icon="pi pi-pencil" severity="success" rounded className="mr-2" onClick={() => editProduct(rowData)} />
+                <Button icon="pi pi-eye" severity="secondary" rounded className="mr-2" onClick={() => navigator(`/orders/${rowData?.orderId}`)} />
                 <Button icon="pi pi-trash" severity="warning" rounded onClick={() => confirmDeleteProduct(rowData)} />
             </>
         );
@@ -277,46 +270,12 @@ const OrderPage = () => {
         </>
     );
     const setRowData = (value, field) => {
-        const table = {
-            orderRequest: {
-                id: null,
-                customerInfo: {
-                    nameOfRecipient: field = 'nameOfRecipient' ? value : '',
-                    phoneNumber: null,
-                    email: null,
-                    provinceId: null,
-                    provinceName: null,
-                    districtId: null,
-                    districtName: null,
-                    wardCode: null,
-                    wardName: null,
-                    shipServiceId: null,
-                    shipServiceName: null,
-                    address: null,
-                    addressDetail: null
-                },
-                paymentMethod: null,
-                note: null,
-                shipPrice: null,
-                shopPriceTotal: null,
-                discountPrice: null,
-                voucherCode: null,
-                discount: 0,
-                payed: true
-            },
-            productOrderRequest: [
-                {
-                    id: null,
-                    qty: 0
-                }
-            ]
-        };
+        const table = { ...order };
         switch (field) {
             default: {
                 table[field] = value;
             }
         }
-        console.log(table);
         setOrder(table);
     };
 
@@ -407,51 +366,25 @@ const OrderPage = () => {
                                     <div className="field">
                                         <label htmlFor="nameOfRecipient">Tên người nhận</label>
                                         <InputText
-                                            value={order.orderRequest.customerInfo.nameOfRecipient}
+                                            value={order.nameOfRecipient}
                                             onChange={(event) => setRowData(event.target.value, "nameOfRecipient")}
                                             id="nameOfRecipient" />
                                     </div>
                                     <div className="field">
                                         <label htmlFor="phoneNumber">Số điện thoại</label>
                                         <InputText
-                                            value={order.orderRequest.customerInfo.phoneNumber}
+                                            value={order.phoneNumber}
                                             onChange={(event) => setRowData(event.target.value, "phoneNumber")}
                                             id="phoneNumber" />
                                     </div>
                                     <div className="field">
                                         <label htmlFor="email">Email</label>
                                         <InputText
-                                            value={order.orderRequest.customerInfo.email}
+                                            value={order.email}
                                             onChange={(event) => setRowData(event.target.value, "email")}
                                             id="email" />
                                     </div>
-                                    <div className="field">
-                                        <label htmlFor="height">Tỉnh/Thành phố</label>
-                                        <Dropdown
-                                            value={order?.orderRequest.customerInfo.provinceId}
-                                            options={province}
-                                            showClear
-                                            filter
-                                            optionLabel="ProvinceName"
-                                            optionValue="ProvinceID"
-                                            onChange={(event) => setRowData(event.target.value, "provinceId")}
-                                        />
-                                    </div>
                                 </Fieldset>
-                            </div>
-
-                            <div className="field ">
-                                <label htmlFor="image">Ảnh danh mục</label>
-                                <TemplateDemo parentCallback={callbackFunction}></TemplateDemo>
-                                <Image hidden={!statusEdit} src={order?.image} alt="Image" width="100" />
-                            </div>
-                            <div className="field">
-                                <label htmlFor="description">Mô tả</label>
-                                <InputTextarea
-                                    onChange={(event) => setRowData(event.target.value, "des")}
-                                    value={order.des}
-                                    id="des"
-                                    rows={3} cols={20} />
                             </div>
                             <div className='flex align-items-center justify-content-center'>
                                 <Button label="Cancel" type='reset' icon="pi pi-times" text onClick={hideDialog} />

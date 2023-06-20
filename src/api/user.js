@@ -8,7 +8,7 @@ export const listOneCate = (id) => {
     const url = `/api/v1/admin/user/detail`
     return instance.get(url)
 }
-export const addCate = (user) => {
+export const addUser = (user) => {
     const url = `/api/v1/admin/user/create`
     return instance.post(url, user)
 }

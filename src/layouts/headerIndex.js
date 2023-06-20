@@ -70,6 +70,13 @@ const HeaderIndex = () => {
       },
     },
     {
+      label: 'Bán hàng tại quầy',
+      icon: 'pi pi-shopping-cart',
+      command: (event) => {
+        navigate('/shop')
+      },
+    },
+    {
       label: 'Đăng xuất',
       icon: 'pi pi-fw pi-power-off',
       command: (event) => {
