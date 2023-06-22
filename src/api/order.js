@@ -24,3 +24,7 @@ export const listOrderStatus = () => {
     const url = `/api/v1/admin/order/listOrderStatus`
     return instance.get(url)
 }
+export const checkVoucher = (vouchers) => {
+    const url = `/api/v1/order/usingVoucher`
+    return instance.post(url, vouchers)
+}
