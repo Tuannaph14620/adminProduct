@@ -7,9 +7,12 @@ import { changeStatus, listOneOrder } from '../../api/order';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Accordion, AccordionTab } from 'primereact/accordion';
 import { Card } from 'primereact/card';
+import { Dialog } from 'primereact/dialog';
 
 const OrderDetailPage = () => {
     const [orders, setOrders] = useState(null);
+    const [deleteProductDialog, setDeleteProductDialog] = useState(false);
+    const [valueStatus, setValueStatus] = useState({ status: '', value: '' })
     const [selectedProducts, setSelectedProducts] = useState(null);
     const [loading, setLoading] = useState(true);
     const toast = useRef(null);
@@ -23,28 +26,39 @@ const OrderDetailPage = () => {
     const searchAll = () => {
         setLoading(true);
         listOneOrder(id).then((res) => {
-            // const _paginator = { ...paginator };
-            // _paginator.total = res.total;
-            // setPaginator(_paginator);
             const _data = res?.data.data
             setOrders(_data);
             setLoading(false);
         });
     };
 
-    const onChange = (status, value) => {
+    const onChange = () => {
         setLoading(true);
         changeStatus({
             "id": id,
-            "status": status,
+            "status": valueStatus?.status,
             "note": ""
         }).then((res) => {
             if (res) {
-                toast.current.show({ severity: 'success', summary: 'Thành công', detail: `Đơn hàng đã chuyển trạng thái ${value}`, life: 1000 });
+                toast.current.show({ severity: 'success', summary: 'Thành công', detail: `Đơn hàng đã chuyển trạng thái ${valueStatus?.value}`, life: 3000 });
+                setDeleteProductDialog(false);
                 setLoading(false);
             }
         });
     }
+    const confirmDeleteProduct = (stt, val) => {
+        setValueStatus({ status: stt, value: val })
+        setDeleteProductDialog(true);
+    };
+    const hideDeleteProductDialog = () => {
+        setDeleteProductDialog(false);
+    };
+    const deleteProductDialogFooter = (
+        <>
+            <Button label="Không" className="p-button-danger" icon="pi pi-times" text onClick={hideDeleteProductDialog} />
+            <Button label="Có" className="p-button-success" icon="pi pi-check" text onClick={onChange} />
+        </>
+    );
 
     const header = (
         <>
@@ -96,16 +110,49 @@ const OrderDetailPage = () => {
                         <Column field="color/size" header="Màu sắc/Kích cỡ" body={(d) => <span >{d?.color}/{d?.size}</span>} headerStyle={{ minWidth: '15rem' }}></Column>
                         <Column field="total" header="Thành tiền" body={(d) => <span >{d.total?.toLocaleString('vi', { style: 'currency', currency: 'VND' })}</span>} headerStyle={{ minWidth: '15rem' }}></Column>
                     </DataTable>
+                    <Dialog visible={deleteProductDialog} style={{ width: '450px' }} header="Confirm" modal footer={deleteProductDialogFooter} onHide={hideDeleteProductDialog} >
+                        <div className="flex align-items-center justify-content-center">
+                            <i className="pi pi-exclamation-triangle mr-3" style={{ fontSize: '2rem' }} />
+                            <span>
+                                {`Bạn có chắc chắn muốn ${valueStatus?.status == 'ACCEPT' ? 'duyệt' : valueStatus?.status == 'SHIPPING' ? 'giao' : valueStatus?.status == 'REJECT' ? 'hủy' : ''}  đơn ${orders?.orderCode} không ?`}
+                            </span>
+                        </div>
+                    </Dialog>
                     <Card className='flex justify-content-end' style={{ paddingRight: '300px' }}>
-                        <p >Tổng chi phí đơn hàng: {orders?.shopTotal}</p>
+                        <p>Tổng chi phí đơn hàng: {orders?.shopTotal}</p>
                         <p>Voucher: {orders?.voucherCode}</p>
                         <p>Giảm giá voucher: {orders?.voucherDiscount}</p>
                         <p>Giảm giá: {orders?.discount}</p>
                         <p>Phí giao hàng: {orders?.shipPrice}</p>
                         <p className='font-bold'>Thanh toán: {orders?.total}</p>
                         <div className="flex flex-wrap gap-4">
-                            <Button hidden={orders?.status != 'PENDING'} onClick={() => onChange('ACCEPT', 'đã duyệt')} severity="success" label="Duyệt đơn" icon="pi pi-check" />
-                            <Button hidden={orders?.status != 'PENDING'} onClick={() => onChange('REJECT', 'đã hủy')} severity="danger" label="Hủy đơn" icon="pi pi-times" className="p-button-outlined p-button-secondary" />
+                            <Button
+                                style={{ display: orders?.status == 'REJECT' || orders?.status == 'CANCEL' || orders?.status == 'UNRECEIVED' || orders?.status == 'COMPLETE' ? 'none' : 'block' }}
+                                onClick={() => {
+                                    if (orders?.status == 'PENDING') {
+                                        confirmDeleteProduct('ACCEPT', 'đã duyệt')
+                                        //onChange('ACCEPT', 'đã duyệt')
+                                    } else if (orders?.status == 'ACCEPT') {
+                                        confirmDeleteProduct('SHIPPING', 'đã gửi hàng')
+                                        //onChange('SHIPPING', 'đã gửi hàng')
+                                    }
+                                }}
+                                severity="success" label={
+                                    orders?.status == 'PENDING' ? 'Duyệt đơn' : orders?.status == 'ACCEPT' ? 'Giao hàng' : 'Đa'
+                                } icon="pi pi-check" />
+                            <Button
+                                style={{ display: orders?.status == 'REJECT' || orders?.status == 'CANCEL' || orders?.status == 'UNRECEIVED' || orders?.status == 'COMPLETE' ? 'none' : 'block' }}
+                                onClick={() => {
+                                    if (orders?.status == 'PENDING' || orders?.status == 'ACCEPT') {
+                                        confirmDeleteProduct('REJECT', 'đã hủy')
+                                        // onChange('REJECT', 'đã hủy')
+                                    }
+                                    // else if (orders?.status == 'ACCEPT') {
+                                    //     onChange('SHIPPING', 'đã gửi hàng')
+                                    // }
+                                }}
+                                severity="danger" label="Hủy đơn" icon="pi pi-times"
+                                className="p-button-outlined p-button-secondary" />
                         </div>
                     </Card>
                 </div>

@@ -43,7 +43,7 @@ const OrderPage = () => {
     const dt = useRef(null);
     useEffect(() => {
         searchAll();
-    }, []);
+    }, [filterData.payed, filterData.startDate, filterData.endDate]);
 
     const searchAll = () => {
         setLoading(true);
@@ -53,9 +53,9 @@ const OrderPage = () => {
                 orderCode: "",
                 email: "",
                 phoneNumber: "",
-                payed: null,
-                startDate: "",
-                endDate: "",
+                payed: filterData.payed,
+                startDate: filterData.startDate,
+                endDate: filterData.endDate,
                 pageReq: {
                     page: 0,
                     pageSize: 1000,
@@ -70,39 +70,9 @@ const OrderPage = () => {
         });
     };
 
-    const hideDeleteProductDialog = () => {
-        setDeleteProductDialog(false);
-    };
-
-    const hideDeleteProductsDialog = () => {
-        setDeleteProductsDialog(false);
-    };
-
-    const deleteProduct = () => {
-        const ids = order
-        removeOrder(ids).then((res) => {
-            if (res) {
-                searchAll();
-                // onChangeSelectedRows([]);
-                setDeleteProductDialog(false);
-                toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Xóa thành công', life: 1000 });
-            }
-        });
-    };
-
     const exportCSV = () => {
         dt.current.exportCSV();
     };
-
-
-    const deleteSelectedProducts = () => {
-        let _products = orders.filter((val) => !selectedProducts.includes(val));
-        setOrders(_products);
-        setDeleteProductsDialog(false);
-        setSelectedProducts(null);
-        toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Products Deleted', life: 3000 });
-    };
-
 
     const actionBodyTemplate = (rowData) => {
         return (
@@ -136,18 +106,6 @@ const OrderPage = () => {
                 </div>
             </div>
 
-        </>
-    );
-    const deleteProductDialogFooter = (
-        <>
-            <Button label="No" icon="pi pi-times" text onClick={hideDeleteProductDialog} />
-            <Button label="Yes" icon="pi pi-check" text onClick={deleteProduct} />
-        </>
-    );
-    const deleteProductsDialogFooter = (
-        <>
-            <Button label="No" icon="pi pi-times" text onClick={hideDeleteProductsDialog} />
-            <Button label="Yes" icon="pi pi-check" text onClick={deleteSelectedProducts} />
         </>
     );
 
@@ -220,7 +178,7 @@ const OrderPage = () => {
                         <Column header="Chức năng" body={(d) => actionBodyTemplate(d)} headerStyle={{ minWidth: '10rem' }}></Column>
                     </DataTable>
 
-                    <OverlayPanel ref={refFilterPanel} className="x-menu" style={{ width: "550px" }}>
+                    <OverlayPanel ref={refFilterPanel} className="x-menu" style={{ width: "560px" }}>
                         <div className="grid formgrid p-fluid fluid mb-2">
                             <div className="col-12 flex gap-8 align-items-center">
                                 <div >
@@ -243,6 +201,17 @@ const OrderPage = () => {
                                             checked={filterData.payed === false}
                                         />
                                         <label className='ml-2' htmlFor="city1">Chưa thanh toán</label>
+                                    </span>
+                                </div>
+                                <div >
+                                    <span className="">
+                                        <RadioButton
+                                            inputId="city1"
+                                            name="city"
+                                            onChange={() => setFilter("payed", null)}
+                                            checked={filterData.payed === null}
+                                        />
+                                        <label className='ml-2' htmlFor="city1">Tất cả</label>
                                     </span>
                                 </div>
                             </div>
@@ -280,24 +249,6 @@ const OrderPage = () => {
                             </div>
                         </div>
                     </OverlayPanel>
-
-                    <Dialog visible={deleteProductDialog} style={{ width: '450px' }} header="Confirm" modal footer={deleteProductDialogFooter} onHide={hideDeleteProductDialog}>
-                        <div className="flex align-items-center justify-content-center">
-                            <i className="pi pi-exclamation-triangle mr-3" style={{ fontSize: '2rem' }} />
-                            {order && (
-                                <span>
-                                    Are you sure you want to delete <b>{order.name}</b>?
-                                </span>
-                            )}
-                        </div>
-                    </Dialog>
-
-                    <Dialog visible={deleteProductsDialog} style={{ width: '450px' }} header="Confirm" modal footer={deleteProductsDialogFooter} onHide={hideDeleteProductsDialog}>
-                        <div className="flex align-items-center justify-content-center">
-                            <i className="pi pi-exclamation-triangle mr-3" style={{ fontSize: '2rem' }} />
-                            {order && <span>Are you sure you want to delete the selected orders?</span>}
-                        </div>
-                    </Dialog>
                 </div>
             </div>
         </div>

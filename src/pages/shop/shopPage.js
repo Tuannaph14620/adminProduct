@@ -194,8 +194,6 @@ const ShopPage = () => {
         setDeleteProductDialog(false)
     };
 
-
-
     const deleteProductDialogFooter = (
         <>
             <Button label="No" icon="pi pi-times" text onClick={hideDeleteProductDialog} />
