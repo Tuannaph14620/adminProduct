@@ -2,22 +2,15 @@ import React, { useEffect, useRef, useState } from 'react'
 import { Button } from 'primereact/button';
 import { Column } from 'primereact/column';
 import { DataTable } from 'primereact/datatable';
-import { FileUpload } from 'primereact/fileupload';
-import { InputText } from 'primereact/inputtext';
 import { Toast } from 'primereact/toast';
-import { Toolbar } from 'primereact/toolbar';
-import { listOneOrder } from '../../api/order';
-import moment from 'moment';
-import { Tag } from 'primereact/tag';
+import { changeStatus, listOneOrder } from '../../api/order';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Accordion, AccordionTab } from 'primereact/accordion';
 import { Card } from 'primereact/card';
 
 const OrderDetailPage = () => {
     const [orders, setOrders] = useState(null);
-    const [order, setOrder] = useState(null);
     const [selectedProducts, setSelectedProducts] = useState(null);
-    const [globalFilter, setGlobalFilter] = useState(null);
     const [loading, setLoading] = useState(true);
     const toast = useRef(null);
     const navigator = useNavigate();
@@ -39,19 +32,19 @@ const OrderDetailPage = () => {
         });
     };
 
-    const exportCSV = () => {
-        dt.current.exportCSV();
-    };
-
-
-    const rightToolbarTemplate = () => {
-        return (
-            <React.Fragment>
-                <FileUpload mode="basic" accept="image/*" maxFileSize={1000000} label="Import" chooseLabel="Import" className="mr-2 inline-block" />
-                <Button label="Export" icon="pi pi-upload" severity="help" onClick={exportCSV} />
-            </React.Fragment>
-        );
-    };
+    const onChange = (status, value) => {
+        setLoading(true);
+        changeStatus({
+            "id": id,
+            "status": status,
+            "note": ""
+        }).then((res) => {
+            if (res) {
+                toast.current.show({ severity: 'success', summary: 'Thành công', detail: `Đơn hàng đã chuyển trạng thái ${value}`, life: 1000 });
+                setLoading(false);
+            }
+        });
+    }
 
     const header = (
         <>
@@ -92,7 +85,6 @@ const OrderDetailPage = () => {
                         className="datatable-responsive"
                         paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
                         currentPageReportTemplate="Showing {first} to {last} of {totalRecords} orders"
-                        globalFilter={globalFilter}
                         emptyMessage="No orders found."
                         header={header}
                         loading={loading}
@@ -112,15 +104,14 @@ const OrderDetailPage = () => {
                         <p>Phí giao hàng: {orders?.shipPrice}</p>
                         <p className='font-bold'>Thanh toán: {orders?.total}</p>
                         <div className="flex flex-wrap gap-4">
-                            <Button severity="success" label="Duyệt đơn" icon="pi pi-check" />
-                            <Button severity="danger" label="Hủy đơn" icon="pi pi-times" className="p-button-outlined p-button-secondary" />
+                            <Button hidden={orders?.status != 'PENDING'} onClick={() => onChange('ACCEPT', 'đã duyệt')} severity="success" label="Duyệt đơn" icon="pi pi-check" />
+                            <Button hidden={orders?.status != 'PENDING'} onClick={() => onChange('REJECT', 'đã hủy')} severity="danger" label="Hủy đơn" icon="pi pi-times" className="p-button-outlined p-button-secondary" />
                         </div>
                     </Card>
                 </div>
             </div>
         </div>
     );
-
 }
 
 export default OrderDetailPage

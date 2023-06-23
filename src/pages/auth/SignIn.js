@@ -1,13 +1,11 @@
 import React, { useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { useDispatch, } from 'react-redux'
-import { Login } from '../../features/AuthSlice'
 import { InputText } from 'primereact/inputtext'
 import { Checkbox } from 'primereact/checkbox'
 import { Button } from 'primereact/button'
 import { signIn } from '../../api/auth'
 import { Toast } from 'primereact/toast';
-import { Navigate, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 const SignIn = () => {
   const { register, handleSubmit } = useForm()
   const [loading, setLoading] = useState(true);
@@ -19,9 +17,12 @@ const SignIn = () => {
     signIn(data).then((res) => {
       if (res) {
         localStorage.setItem('user', JSON.stringify(res.data))
-        toast.current?.show({ severity: 'success', summary: 'Successful', detail: 'Thêm thành công', life: 1000 });
+        toast.current?.show({ severity: 'success', summary: 'Successful', detail: 'Đâng nhập thành công', life: 1000 });
         setLoading(false);
         navigate('/')
+      } else {
+        toast.current?.show({ severity: 'error', summary: 'Successful', detail: 'Đâng nhập thất bại', life: 1000 });
+        setLoading(false);
       }
     })
   }

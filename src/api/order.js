@@ -28,3 +28,7 @@ export const checkVoucher = (vouchers) => {
     const url = `/api/v1/order/usingVoucher`
     return instance.post(url, vouchers)
 }
+export const changeStatus = (status) => {
+    const url = `/api/v1/admin/order/change-status`
+    return instance.post(url, status)
+}

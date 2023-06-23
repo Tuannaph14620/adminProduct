@@ -1,27 +1,16 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { TabView, TabPanel } from 'primereact/tabview';
 import { Button } from 'primereact/button';
 import { Column } from 'primereact/column';
 import { DataTable } from 'primereact/datatable';
-import { Dialog } from 'primereact/dialog';
-import { FileUpload } from 'primereact/fileupload';
 import { InputText } from 'primereact/inputtext';
-import { InputTextarea } from 'primereact/inputtextarea';
 import { Toast } from 'primereact/toast';
-import { Toolbar } from 'primereact/toolbar';
-import { addOrder, removeOrder, updateOrder } from '../../api/order';
-import { Image } from 'primereact/image';
-import TemplateDemo from '../../component/FileUpload';
 import { listOrder } from '../../api/order';
 import moment from 'moment';
 import { Tag } from 'primereact/tag';
 import { useNavigate } from 'react-router-dom';
-const OrderPendingPage = () => {
+const OrderUnreceivedPage = () => {
     const navigator = useNavigate();
     const [orders, setOrders] = useState(null);
-    const [deleteProductDialog, setDeleteProductDialog] = useState(false);
-    const [deleteProductsDialog, setDeleteProductsDialog] = useState(false);
-    const [order, setOrder] = useState(null);
     const [selectedProducts, setSelectedProducts] = useState(null);
     const [globalFilter, setGlobalFilter] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -35,7 +24,7 @@ const OrderPendingPage = () => {
         setLoading(true);
         listOrder(
             {
-                status: "PENDING",
+                status: "UNRECEIVED",
                 orderCode: "",
                 email: "",
                 phoneNumber: "",
@@ -56,43 +45,8 @@ const OrderPendingPage = () => {
         });
     };
 
-    const onSubmit = () => {
-
-
-    }
-
-    const hideDeleteProductDialog = () => {
-        setDeleteProductDialog(false);
-    };
-
-    const hideDeleteProductsDialog = () => {
-        setDeleteProductsDialog(false);
-    };
-
-
-    const deleteProduct = () => {
-        const ids = order
-        removeOrder(ids).then((res) => {
-            if (res) {
-                searchAll();
-                // onChangeSelectedRows([]);
-                setDeleteProductDialog(false);
-                toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Xóa thành công', life: 1000 });
-            }
-        });
-    };
-
     const exportCSV = () => {
         dt.current.exportCSV();
-    };
-
-
-    const deleteSelectedProducts = () => {
-        let _products = orders.filter((val) => !selectedProducts.includes(val));
-        setOrders(_products);
-        setDeleteProductsDialog(false);
-        setSelectedProducts(null);
-        toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Products Deleted', life: 3000 });
     };
 
     const actionBodyTemplate = (rowData) => {
@@ -105,7 +59,7 @@ const OrderPendingPage = () => {
 
     const header = (
         <div className="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
-            <h4 className="m-0">Đơn hàng chờ xác nhận</h4>
+            <h4 className="m-0">Đơn hàng đã hủy</h4>
             <span className="block mt-2 md:mt-0 p-input-icon-left">
                 <i className="pi pi-search" />
                 <InputText type="search" onChange={(e) => setGlobalFilter(e.target.value)} placeholder="Tìm kiếm" />
@@ -114,18 +68,6 @@ const OrderPendingPage = () => {
                 <Button label="Export" icon="pi pi-upload" severity="help" onClick={exportCSV} />
             </React.Fragment>
         </div>
-    );
-    const deleteProductDialogFooter = (
-        <>
-            <Button label="No" icon="pi pi-times" text onClick={hideDeleteProductDialog} />
-            <Button label="Yes" icon="pi pi-check" text onClick={deleteProduct} />
-        </>
-    );
-    const deleteProductsDialogFooter = (
-        <>
-            <Button label="No" icon="pi pi-times" text onClick={hideDeleteProductsDialog} />
-            <Button label="Yes" icon="pi pi-check" text onClick={deleteSelectedProducts} />
-        </>
     );
 
     return (
@@ -161,24 +103,6 @@ const OrderPendingPage = () => {
                         <Column field="status" header="Trạng thái đơn hàng" align={'center'} body={(d) => <Tag className="mr-2" severity={d.status == 'PENDING' ? 'warning' : d.status == 'RECEIVED' ? 'Success' : ''} value={d.statusValue}></Tag>} headerStyle={{ minWidth: '15rem' }}></Column>
                         <Column header="Chức năng" body={(d) => actionBodyTemplate(d)} headerStyle={{ minWidth: '10rem' }}></Column>
                     </DataTable>
-
-                    <Dialog visible={deleteProductDialog} style={{ width: '450px' }} header="Confirm" modal footer={deleteProductDialogFooter} onHide={hideDeleteProductDialog}>
-                        <div className="flex align-items-center justify-content-center">
-                            <i className="pi pi-exclamation-triangle mr-3" style={{ fontSize: '2rem' }} />
-                            {order && (
-                                <span>
-                                    Are you sure you want to delete <b>{order.name}</b>?
-                                </span>
-                            )}
-                        </div>
-                    </Dialog>
-
-                    <Dialog visible={deleteProductsDialog} style={{ width: '450px' }} header="Confirm" modal footer={deleteProductsDialogFooter} onHide={hideDeleteProductsDialog}>
-                        <div className="flex align-items-center justify-content-center">
-                            <i className="pi pi-exclamation-triangle mr-3" style={{ fontSize: '2rem' }} />
-                            {order && <span>Are you sure you want to delete the selected orders?</span>}
-                        </div>
-                    </Dialog>
                 </div>
             </div>
         </div>
@@ -186,4 +110,4 @@ const OrderPendingPage = () => {
 
 }
 
-export default OrderPendingPage
+export default OrderUnreceivedPage

@@ -2,6 +2,11 @@ import React, { useEffect, useRef, useState } from "react";
 import { TabPanel, TabView } from "primereact/tabview";
 import OrderPage from "./OrderPage";
 import OrderPendingPage from "./OrderPendingPage";
+import OrderVerifyPage from "./OrderVerifyPage";
+import OrderRejectPage from "./OrderRejectPage";
+import OrderCompletePage from "./OrderCompletePage";
+import OrderShippingPage from "./OrderShippingPage";
+import OrderUnreceivedPage from "./OrderUnreceivedPage";
 
 
 export default function OrderManager(props, ref) {
@@ -13,7 +18,7 @@ export default function OrderManager(props, ref) {
         changeTab(0, buildTabs());
     }, []);
 
-    const modules = ['all_order', 'order_pending', 'verify', 'delivery', 'successful_delivery', 'failed_delivery', 'cancelled'];
+    const modules = ['all_order', 'order_pending', 'verify', 'delivery', 'failed_delivery', 'complete', 'reject'];
     const modulesDefinition = {
         all_order: {
             title: 'Tất cả',
@@ -25,23 +30,23 @@ export default function OrderManager(props, ref) {
         },
         verify: {
             title: 'Xác nhận',
-            renderer: () => <OrderPage setChangeTabData={setChangeTabData}></OrderPage>,
+            renderer: () => <OrderVerifyPage setChangeTabData={setChangeTabData}></OrderVerifyPage>,
         },
         delivery: {
             title: 'Giao hàng',
-            renderer: () => <OrderPage setChangeTabData={setChangeTabData}></OrderPage>,
-        },
-        successful_delivery: {
-            title: 'Giao hàng thành công',
-            renderer: () => <OrderPage setChangeTabData={setChangeTabData}></OrderPage>,
+            renderer: () => <OrderShippingPage setChangeTabData={setChangeTabData}></OrderShippingPage>,
         },
         failed_delivery: {
             title: 'Giao hàng thất bại',
-            renderer: () => <OrderPage setChangeTabData={setChangeTabData}></OrderPage>,
+            renderer: () => <OrderUnreceivedPage setChangeTabData={setChangeTabData}></OrderUnreceivedPage>,
         },
-        cancelled: {
-            title: 'Đã hủy',
-            renderer: () => <OrderPage setChangeTabData={setChangeTabData}></OrderPage>,
+        complete: {
+            title: 'Hoàn tất',
+            renderer: () => <OrderCompletePage setChangeTabData={setChangeTabData}></OrderCompletePage>,
+        },
+        reject: {
+            title: 'Từ chối',
+            renderer: () => <OrderRejectPage setChangeTabData={setChangeTabData}></OrderRejectPage>,
         },
     };
 

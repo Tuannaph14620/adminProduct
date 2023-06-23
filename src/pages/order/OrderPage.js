@@ -23,43 +23,16 @@ import { listProvince } from '../../api/ghn';
 import { Dropdown } from 'primereact/dropdown';
 import { useNavigate } from 'react-router-dom';
 const OrderPage = () => {
-    let emptyProduct = {
-        "id": "",
-        "nameOfRecipient": "Nguyễn Văn Tuấn",
-        "phoneNumber": "0359233895",
-        "email": "vantuan@gmail.com",
-        "paymentMethod": "COD",
-        "note": "Không note",
-        "shipPrice": "29000",
-        "shopPriceTotal": "7500000",
-        "discountPrice": "0",
-        "voucherCode": "",
-        "discount": 0,
-        "payed": true,
-        "productOrderRequest": [
-            {
-                "id": "0ba875bc-8774-40ae-bdf0-51431ca7a4e0",
-                "qty": 3
-            },
-            {
-                "id": "54317494-71c7-4e3a-99fb-1412730390e3",
-                "qty": 1
-            }
-        ]
-    }
     const refFilterPanel = useRef(null);
     const navigator = useNavigate();
     const [_validate, setValidate] = useState({});
     const [orders, setOrders] = useState(null);
-    const [productDialog, setProductDialog] = useState(false);
     const [deleteProductDialog, setDeleteProductDialog] = useState(false);
     const [deleteProductsDialog, setDeleteProductsDialog] = useState(false);
-    const [order, setOrder] = useState(emptyProduct);
-    const [statusEdit, setStatusEdit] = useState(false)
+    const [order, setOrder] = useState(null);
     const [selectedProducts, setSelectedProducts] = useState(null);
     const [globalFilter, setGlobalFilter] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [province, setProvince] = useState(null)
     const defaultData = {
         payed: null,
         startDate: null,
@@ -85,61 +58,16 @@ const OrderPage = () => {
                 endDate: "",
                 pageReq: {
                     page: 0,
-                    pageSize: 15,
+                    pageSize: 1000,
                     sortField: "createdDate",
                     sortDirection: "desc"
                 }
             }
         ).then((res) => {
-            // const _paginator = { ...paginator };
-            // _paginator.total = res.total;
-            // setPaginator(_paginator);
             const _data = res?.data.data
             setOrders(_data);
             setLoading(false);
         });
-    };
-
-    const onSubmit = () => {
-        setLoading(true);
-        if (statusEdit) {
-            updateOrder(order).then((res) => {
-                searchAll();
-                setLoading(false);
-                setOrder(emptyProduct)
-                setProductDialog(false)
-                toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Sửa thành công', life: 1000 });
-            })
-        } else {
-            addOrder(order).then((res) => {
-                searchAll();
-                setLoading(false);
-                setProductDialog(false)
-                toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Thêm thành công', life: 1000 });
-            })
-        }
-
-    }
-
-    const getAll = () => {
-        listProvince(
-            {}
-        ).then((res) => {
-            const _data = res?.data.data
-            setProvince(_data);
-        });
-    }
-
-    const openNew = () => {
-        getAll();
-        setOrder(emptyProduct)
-        setProductDialog(true);
-    };
-
-    const hideDialog = () => {
-        setOrder(emptyProduct)
-        setProductDialog(false);
-        setStatusEdit(false)
     };
 
     const hideDeleteProductDialog = () => {
@@ -148,24 +76,6 @@ const OrderPage = () => {
 
     const hideDeleteProductsDialog = () => {
         setDeleteProductsDialog(false);
-    };
-
-    const editProduct = (order) => {
-        const data = {
-            id: order?.id,
-            name: order?.name,
-            des: order?.des,
-            image: order?.image
-        }
-        setStatusEdit(true)
-        setOrder({ ...data });
-        setProductDialog(true);
-    };
-
-
-    const confirmDeleteProduct = (order) => {
-        setOrder(order);
-        setDeleteProductDialog(true);
     };
 
     const deleteProduct = () => {
@@ -184,9 +94,6 @@ const OrderPage = () => {
         dt.current.exportCSV();
     };
 
-    const confirmDeleteSelected = () => {
-        setDeleteProductsDialog(true);
-    };
 
     const deleteSelectedProducts = () => {
         let _products = orders.filter((val) => !selectedProducts.includes(val));
@@ -196,41 +103,11 @@ const OrderPage = () => {
         toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Products Deleted', life: 3000 });
     };
 
-    const leftToolbarTemplate = () => {
-        return (
-            <React.Fragment>
-                <div className="my-2">
-                    <Button label="New" icon="pi pi-plus" severity="sucess" className="mr-2" onClick={openNew} />
-                    <Button label="Delete" icon="pi pi-trash" severity="danger" onClick={confirmDeleteSelected} disabled={!selectedProducts || !selectedProducts.length} />
-                </div>
-            </React.Fragment>
-        );
-    };
-
-    const rightToolbarTemplate = () => {
-        return (
-            <React.Fragment>
-                <FileUpload mode="basic" accept="image/*" maxFileSize={1000000} label="Import" chooseLabel="Import" className="mr-2 inline-block" />
-                <Button label="Export" icon="pi pi-upload" severity="help" onClick={exportCSV} />
-            </React.Fragment>
-        );
-    };
-
-    const imageBodyTemplate = (rowData) => {
-        return (
-            <>
-                <span className="p-column-title">Image</span>
-                <img src={`${rowData.image}`} alt={rowData.image} className="shadow-2" width="100" />
-            </>
-        );
-    };
 
     const actionBodyTemplate = (rowData) => {
         return (
             <>
-                <Button icon="pi pi-pencil" severity="success" rounded className="mr-2" onClick={() => editProduct(rowData)} />
                 <Button icon="pi pi-eye" severity="secondary" rounded className="mr-2" onClick={() => navigator(`/orders/${rowData?.orderId}`)} />
-                <Button icon="pi pi-trash" severity="warning" rounded onClick={() => confirmDeleteProduct(rowData)} />
             </>
         );
     };
@@ -244,9 +121,13 @@ const OrderPage = () => {
                     <InputText style={{ width: '400px' }} type="search" onChange={(e) => setGlobalFilter(e.target.value)} placeholder="Tìm kiếm" />
                 </span>
                 <div className="px-2 ">
+                    <React.Fragment>
+                        <Button label="Export" icon="pi pi-upload" severity="help" onClick={exportCSV} />
+                    </React.Fragment>
                     <Button
                         icon="pi pi-filter"
                         tooltip={"Lọc"}
+                        className='ml-3'
                         tooltipOptions={{ position: "top" }}
                         onClick={(e) => {
                             refFilterPanel.current.toggle(e);
@@ -269,21 +150,6 @@ const OrderPage = () => {
             <Button label="Yes" icon="pi pi-check" text onClick={deleteSelectedProducts} />
         </>
     );
-    const setRowData = (value, field) => {
-        const table = { ...order };
-        switch (field) {
-            default: {
-                table[field] = value;
-            }
-        }
-        setOrder(table);
-    };
-
-    const callbackFunction = (childData) => {
-        const _image = { ...order }
-        _image.image = childData
-        setOrder(_image)
-    }
 
     const setFilter = (field, value) => {
         const _filter = { ...filterData };
@@ -329,13 +195,9 @@ const OrderPage = () => {
             <div className="col-12">
                 <div className="card">
                     <Toast ref={toast} />
-                    <Toolbar className="mb-4" left={leftToolbarTemplate} right={rightToolbarTemplate}></Toolbar>
-
                     <DataTable
                         ref={dt}
                         value={orders}
-                        selection={selectedProducts}
-                        onSelectionChange={(e) => setSelectedProducts(e.value)}
                         dataKey="id"
                         paginator
                         rows={10}
@@ -349,7 +211,6 @@ const OrderPage = () => {
                         loading={loading}
                         responsiveLayout="scroll"
                     >
-                        <Column selectionMode="multiple" headerStyle={{ width: '4rem' }}></Column>
                         <Column field="orderCode" header="Mã đơn hàng" sortable body={(d) => <span >{d.orderCode}</span>} headerStyle={{ minWidth: '15rem' }}></Column>
                         <Column field="createdDate" header="Ngày đặt" sortable body={(d) => <span >{moment(d.createdDate).format('D-MM-YYYY HH:mm:ss')}</span>} headerStyle={{ minWidth: '15rem' }}></Column>
                         <Column field="payed" header="Trạng thái thanh toán" body={(d) => <span >{d.payed ? 'Đã thanh toán' : 'Chưa thanh toán'}</span>} headerStyle={{ minWidth: '15rem' }}></Column>
@@ -358,40 +219,6 @@ const OrderPage = () => {
                         <Column field="status" header="Trạng thái đơn hàng" align={'center'} body={(d) => <Tag className="mr-2" severity={d.status == 'PENDING' ? 'warning' : d.status == 'RECEIVED' ? 'Success' : ''} value={d.statusValue}></Tag>} headerStyle={{ minWidth: '15rem' }}></Column>
                         <Column header="Chức năng" body={(d) => actionBodyTemplate(d)} headerStyle={{ minWidth: '10rem' }}></Column>
                     </DataTable>
-
-                    <Dialog visible={productDialog} style={{ width: '1000px' }} header={statusEdit ? "Sửa đơn hàng" : "Thêm  mới đơn hàng"} modal className="p-fluid" onHide={hideDialog}>
-                        <form >
-                            <div className="card">
-                                <Fieldset legend="Thông tin khách hàng" toggleable>
-                                    <div className="field">
-                                        <label htmlFor="nameOfRecipient">Tên người nhận</label>
-                                        <InputText
-                                            value={order.nameOfRecipient}
-                                            onChange={(event) => setRowData(event.target.value, "nameOfRecipient")}
-                                            id="nameOfRecipient" />
-                                    </div>
-                                    <div className="field">
-                                        <label htmlFor="phoneNumber">Số điện thoại</label>
-                                        <InputText
-                                            value={order.phoneNumber}
-                                            onChange={(event) => setRowData(event.target.value, "phoneNumber")}
-                                            id="phoneNumber" />
-                                    </div>
-                                    <div className="field">
-                                        <label htmlFor="email">Email</label>
-                                        <InputText
-                                            value={order.email}
-                                            onChange={(event) => setRowData(event.target.value, "email")}
-                                            id="email" />
-                                    </div>
-                                </Fieldset>
-                            </div>
-                            <div className='flex align-items-center justify-content-center'>
-                                <Button label="Cancel" type='reset' icon="pi pi-times" text onClick={hideDialog} />
-                                <Button label="Save" type='submit' icon="pi pi-check" loading={loading} onClick={() => onSubmit()} />
-                            </div>
-                        </form>
-                    </Dialog>
 
                     <OverlayPanel ref={refFilterPanel} className="x-menu" style={{ width: "550px" }}>
                         <div className="grid formgrid p-fluid fluid mb-2">

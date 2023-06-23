@@ -10,6 +10,8 @@ import { listProductByName } from '../../api/product';
 import { Dropdown } from 'primereact/dropdown';
 import { InputNumber } from 'primereact/inputnumber';
 import { listVoucher } from '../../api/voucher';
+import { useNavigate } from 'react-router-dom';
+import { classNames } from 'primereact/utils';
 const ShopPage = () => {
     let emptyProduct = {
         "id": null,
@@ -22,19 +24,20 @@ const ShopPage = () => {
         "shopPriceTotal": "0",
         "discountPrice": null,
         "voucherCode": null,
-        "discount": null,
+        "discount": 0,
         "payed": true,
         "productOrderRequest": []
     }
     const [product, setProduct] = useState(null)
+    const navigate = useNavigate();
     const [productSelected, setProductSelected] = useState([])
-    const [productDialog, setProductDialog] = useState(false);
     const [deleteProductDialog, setDeleteProductDialog] = useState(false);
     const [order, setOrder] = useState(emptyProduct);
     const [orderDelete, setOrderDelete] = useState(null)
     const [selectedProducts, setSelectedProducts] = useState(null);
     const [vouchers, setVouchers] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState({ field: "" });
     const toast = useRef(null);
     const dt = useRef(null);
     useEffect(() => {
@@ -44,7 +47,29 @@ const ShopPage = () => {
 
     const searchAll = () => {
     };
-
+    const validate = () => {
+        const _dataTable = { ...order };
+        const _error = { ...error };
+        if (!_dataTable.nameOfRecipient) {
+            _error.field = 'nameOfRecipient';
+            toast.current.show({ severity: 'warn', summary: 'Cảnh báo', detail: 'Vui lòng nhập họ và tên', life: 1000 });
+            setError(_error);
+            return false;
+        }
+        if (!_dataTable.email) {
+            _error.field = "email";
+            toast.current.show({ severity: 'warn', summary: 'Cảnh báo', detail: 'Vui lòng nhập email', life: 1000 });
+            setError(_error);
+            return false;
+        }
+        if (!_dataTable.phoneNumber) {
+            _error.field = "phoneNumber";
+            toast.current.show({ severity: 'warn', summary: 'Cảnh báo', detail: 'Vui lòng nhập số điện thoại', life: 1000 });
+            setError(_error);
+            return false;
+        }
+        return true;
+    }
     const onSubmit = (event) => {
         setLoading(true)
         event.preventDefault();
@@ -57,10 +82,19 @@ const ShopPage = () => {
                 }
             })
         }
+        if (!validate()) {
+            setLoading(false);
+            return;
+        } else if (orderAdd.productOrderRequest.length == 0) {
+            toast.current.show({ severity: 'warn', summary: 'Cảnh báo', detail: 'Vui lòng chọn sản phẩn muốn bán', life: 1000 });
+            return;
+        }
+        setError({ field: '' });
         addOrder(orderAdd).then((res) => {
             if (res) {
                 setLoading(false);
                 toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Thêm thành công', life: 1000 });
+                navigate('/orders')
             }
 
         })
@@ -126,13 +160,6 @@ const ShopPage = () => {
         setDeleteProductDialog(true);
     };
 
-
-    const exportCSV = () => {
-        dt.current.exportCSV();
-    };
-
-
-
     const actionBodyTemplate = (rowData) => {
         return (
             <>
@@ -167,6 +194,8 @@ const ShopPage = () => {
         setDeleteProductDialog(false)
     };
 
+
+
     const deleteProductDialogFooter = (
         <>
             <Button label="No" icon="pi pi-times" text onClick={hideDeleteProductDialog} />
@@ -185,6 +214,7 @@ const ShopPage = () => {
                 }
 
             default: {
+                setError({ field: '' });
                 table[field] = value;
             }
         }
@@ -196,7 +226,13 @@ const ShopPage = () => {
         const a = { ...dataProduct }
         a['quantity'] = 1
         const table = [...productSelected];
-        table.push(a)
+        const chechPriductExist = table.find(({ id }) => id === dataProduct.id)
+        if (!chechPriductExist) {
+            table.push(a)
+        } else {
+            chechPriductExist.quantity += a.quantity
+        }
+
         setProductSelected(table);
     };
 
@@ -282,6 +318,9 @@ const ShopPage = () => {
                         <label htmlFor="nameOfRecipient">Tên</label>
                         <InputText
                             value={order.nameOfRecipient}
+                            className={classNames({
+                                "p-invalid": error.field === 'nameOfRecipient'
+                            })}
                             onChange={(event) => setRowData(event.target.value, "nameOfRecipient")}
                             id="nameOfRecipient" />
                     </div>
@@ -289,6 +328,9 @@ const ShopPage = () => {
                         <label htmlFor="email">Email</label>
                         <InputText
                             value={order.email}
+                            className={classNames({
+                                "p-invalid": error.field === 'email'
+                            })}
                             onChange={(event) => setRowData(event.target.value, "email")}
                             id="email" />
                     </div>
@@ -297,6 +339,9 @@ const ShopPage = () => {
                         <InputText
                             keyfilter="num"
                             value={order.phoneNumber}
+                            className={classNames({
+                                "p-invalid": error.field === 'phoneNumber'
+                            })}
                             onChange={(event) => setRowData(event.target.value, "phoneNumber")}
                             id="phoneNumber" />
                     </div>
