@@ -11,7 +11,6 @@ import { classNames } from 'primereact/utils';
 import { InputNumber } from 'primereact/inputnumber';
 import { RadioButton } from 'primereact/radiobutton';
 import { Calendar } from 'primereact/calendar';
-import { useForm } from 'react-hook-form';
 import { addVoucher, listVoucher, removeVoucher, updateVoucher } from '../../api/voucher';
 import { InputTextarea } from 'primereact/inputtextarea';
 import moment from 'moment/moment';
@@ -28,6 +27,7 @@ const VoucherPage = () => {
         amount: null
     };
     const [vouchers, setVouchers] = useState(null);
+    const [errors, setErrors] = useState({ field: "" });
     const [productDialog, setProductDialog] = useState(false);
     const [deleteProductDialog, setDeleteProductDialog] = useState(false);
     const [deleteProductsDialog, setDeleteProductsDialog] = useState(false);
@@ -66,8 +66,14 @@ const VoucherPage = () => {
         });
     };
 
-    const onSubmit = () => {
+    const onSubmit = (event) => {
         setLoading(true);
+        event.preventDefault();
+        if (!validate()) {
+            setLoading(false);
+            return;
+        }
+        setErrors({ field: '' })
         if (editVoucher) {
             updateVoucher(voucher).then((res) => {
                 if (res) {
@@ -100,6 +106,8 @@ const VoucherPage = () => {
 
     const hideDialog = () => {
         setVoucher(emptyProduct);
+        setLoading(false)
+        setErrors({ field: '' });
         setProductDialog(false);
         setEditVoucher(false)
     };
@@ -114,7 +122,11 @@ const VoucherPage = () => {
 
     const editProduct = (data) => {
         setEditVoucher(true);
-        setVoucher({ ...data });
+        setVoucher({
+            ...data,
+            startDate: new Date(data.startDate),
+            endDate: new Date(data.endDate)
+        });
         setProductDialog(true);
     };
 
@@ -183,7 +195,7 @@ const VoucherPage = () => {
 
     const header = (
         <div className="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
-            <h5 className="m-0">Mã giảm giá</h5>
+            <h4 className="m-0">Mã giảm giá</h4>
             <span className="block mt-2 md:mt-0 p-input-icon-left">
                 <i className="pi pi-search" />
                 <InputText type="search" onChange={(e) => setGlobalFilter(e.target.value)} placeholder="Tìm kiếm" />
@@ -202,19 +214,122 @@ const VoucherPage = () => {
             <Button label="Yes" icon="pi pi-check" text onClick={deleteSelectedProducts} />
         </>
     );
-
+    const validate = () => {
+        const _dataTable = { ...voucher };
+        const _error = { ...errors };
+        if (!_dataTable.code) {
+            _error.field = "code";
+            toast.current.show({ severity: 'warn', summary: 'Cảnh báo', detail: 'Vui lòng nhập mã giảm giá', life: 3000 });
+            setErrors(_error);
+            return false;
+        }
+        if (!_dataTable.des) {
+            _error.field = 'des';
+            toast.current.show({ severity: 'warn', summary: 'Cảnh báo', detail: 'Vui lòng nhập mô tả', life: 3000 });
+            setErrors(_error);
+            return false;
+        }
+        if (!_dataTable.startDate) {
+            _error.field = 'startDate';
+            toast.current.show({ severity: 'warn', summary: 'Cảnh báo', detail: 'Vui lòng nhập từ ngày', life: 3000 });
+            setErrors(_error);
+            return false;
+        }
+        if (!_dataTable.endDate) {
+            _error.field = 'endDate';
+            toast.current.show({ severity: 'warn', summary: 'Cảnh báo', detail: 'Vui lòng nhập đến ngày', life: 3000 });
+            setErrors(_error);
+            return false;
+        }
+        if (_dataTable.startDate && _dataTable.endDate && _dataTable.startDate > _dataTable.endDate) {
+            _error.field = 'date';
+            toast.current.show({ severity: 'warn', summary: 'Cảnh báo', detail: 'Đến ngày không được nhỏ hơn từ ngày', life: 3000 });
+            setErrors(_error);
+            return false;
+        }
+        if (!_dataTable.status) {
+            _error.field = 'status';
+            toast.current.show({ severity: 'warn', summary: 'Cảnh báo', detail: 'Vui lòng chọn trạng thái', life: 3000 });
+            setErrors(_error);
+            return false;
+        }
+        if (!_dataTable.percent) {
+            _error.field = 'percent';
+            toast.current.show({ severity: 'warn', summary: 'Cảnh báo', detail: 'Vui lòng nhập phần trăm', life: 3000 });
+            setErrors(_error);
+            return false;
+        }
+        if (!_dataTable.amount) {
+            _error.field = 'amount';
+            toast.current.show({ severity: 'warn', summary: 'Cảnh báo', detail: 'Vui lòng nhập số lượng', life: 3000 });
+            setErrors(_error);
+            return false;
+        }
+        if (!_dataTable.prerequisiteValue) {
+            _error.field = 'prerequisiteValue';
+            toast.current.show({ severity: 'warn', summary: 'Cảnh báo', detail: 'Vui lòng nhập đơn giá tôi thiểu', life: 3000 });
+            setErrors(_error);
+            return false;
+        }
+        return true;
+    }
     const setRowData = (value, field) => {
-
         const table = { ...voucher };
+        const _error = { ...errors };
         switch (field) {
+            case "code":
+                setErrors({ field: '' });
+                table[field] = value;
+                break;
+            case "des":
+                setErrors({ field: '' });
+                table[field] = value;
+                break;
+            case "startDate":
+                setErrors({ field: '' });
+                table[field] = value;
+                break;
+            case "endDate":
+                if (!value) {
+                    table[field] = null
+                } else {
+                    setErrors({ field: '' });
+                    table[field] = value;
+                }
+                if (table.startDate && table.endDate) {
+                    if (table.endDate < table.startDate) {
+                        _error.field = 'date';
+                        toast.current.show({ severity: 'warn', summary: 'Cảnh báo', detail: 'Đến ngày không được nhỏ hơn từ ngày', life: 3000 });
+                        setErrors(_error);
+                    } else {
+                        setErrors({ field: '' });
+                    }
+                }
+                break;
+            case "status":
+                setErrors({ field: '' });
+                table[field] = value;
+                break;
+            case "percent":
+                setErrors({ field: '' });
+                table[field] = value;
+                break;
+            case "amount":
+                setErrors({ field: '' });
+                table[field] = value;
+                break;
+            case "prerequisiteValue":
+                setErrors({ field: '' });
+                table[field] = value;
+                break;
             default: {
                 table[field] = value;
+                break;
             }
         }
-
         setVoucher(table);
     };
-
+    console.log(errors);
     return (
         <div className="grid crud-demo">
             <div className="col-12">
@@ -245,20 +360,22 @@ const VoucherPage = () => {
                         <Column field="startDate" header="Từ ngày" sortable body={(d) => <span >{moment(d.startDate).format('D-MM-YYYY')}</span>} headerStyle={{ minWidth: '15rem' }}></Column>
                         <Column field="endDate" header="Đến ngày" sortable body={(d) => <span >{moment(d.endDate).format('D-MM-YYYY')}</span>} headerStyle={{ minWidth: '15rem' }}></Column>
                         <Column field="percent" header="Phần trăm" sortable body={(d) => <span >{d.percent}%</span>} headerStyle={{ minWidth: '15rem' }}></Column>
-                        <Column field="amount" header="Gía tiền" sortable body={(d) => <span >{d?.amount?.toLocaleString('vi', { style: 'currency', currency: 'VND' })}</span>} headerStyle={{ minWidth: '15rem' }}></Column>
+                        <Column field="amount" header="Số lượng" sortable body={(d) => <span >{d?.amount}</span>} headerStyle={{ minWidth: '15rem' }}></Column>
                         <Column field="prerequisiteValue" header="Đơn giá tối thiểu" sortable body={(d) => <span >{d.prerequisiteValue?.toLocaleString('vi', { style: 'currency', currency: 'VND' })}</span>} headerStyle={{ minWidth: '15rem' }}></Column>
                         <Column field="status" header="Trạng thái" sortable body={(d) => <span >{d.status}</span>} headerStyle={{ minWidth: '15rem' }}></Column>
                         <Column header="Chức năng" body={(d) => actionBodyTemplate(d)} headerStyle={{ minWidth: '10rem' }}></Column>
                     </DataTable>
 
                     <Dialog visible={productDialog} style={{ width: '450px' }} header={editVoucher ? "Sửa mẫ khuyến mãi" : "Thêm mới mã khuyến mãi"} modal className="p-fluid" onHide={hideDialog}>
-                        <form >
+                        <form onSubmit={onSubmit} >
                             <div className="field">
                                 <label htmlFor="code">Mã giảm giá</label>
                                 <InputText
                                     onChange={(event) => setRowData(event.target.value, "code")}
                                     value={voucher.code}
-                                    id="code" />
+                                    id="code"
+                                    className={classNames({ 'p-invalid': errors.field === 'code' })}
+                                />
                             </div>
                             <div className="field">
                                 <label htmlFor="des">Mô tả</label>
@@ -266,47 +383,63 @@ const VoucherPage = () => {
                                     id="des"
                                     value={voucher.des}
                                     onChange={(event) => setRowData(event.target.value, "des")}
-                                    rows={3} cols={20} />
+                                    rows={3} cols={20}
+                                    className={classNames({ 'p-invalid': errors.field === 'des' })}
+                                />
                             </div>
                             <div className="field">
                                 <label htmlFor="startDate">Từ ngày</label>
                                 <Calendar
-                                    value={moment(voucher?.startDate).format("YYYY-MM-DDTHH:mm:ssZZ")}
-                                    onChange={(event) => setRowData(moment(event.target.value).format('YYYY-MM-DDTHH:mm:ssZZ'), "startDate")}
-                                    showIcon />
+                                    value={voucher?.startDate}
+                                    onChange={(event) => setRowData(event.value, "startDate")}
+                                    showIcon
+                                    placeholder="dd/mm/yyyy"
+                                    className={classNames({ 'p-invalid': errors.field === 'startDate' || errors.field === 'date' })}
+                                />
                             </div>
                             <div className="field">
                                 <label htmlFor="endDate">Đến ngày</label>
                                 <Calendar
-                                    value={moment(voucher?.endDate).format("YYYY-MM-DDTHH:mm:ssZZ")}
-                                    onChange={(event) => setRowData(moment(event.target.value).format('YYYY-MM-DDTHH:mm:ssZZ'), "endDate")}
-                                    showIcon />
+                                    value={voucher?.endDate}
+                                    onChange={(event) => setRowData(event.value, "endDate")}
+                                    showIcon
+                                    placeholder="dd/mm/yyyy"
+                                    className={classNames({ 'p-invalid': errors.field === 'endDate' || errors.field === 'date' })}
+                                />
                             </div>
                             <div className="field">
-                                <label className="mb-3">Status</label>
+                                <label className="mb-3">Trạng thái</label>
                                 <div className="formgrid grid">
                                     <div className="field-radiobutton col-6">
                                         <RadioButton inputId="pending" name="status" value="PENDING"
                                             onChange={(e) => setRowData(e.value, "status")}
-                                            checked={voucher.status === 'PENDING'} />
+                                            checked={voucher.status === 'PENDING'}
+                                            className={classNames({ 'p-invalid': errors.field === 'status' })}
+                                        />
                                         <label htmlFor="pending">PENDING</label>
                                     </div>
                                     <div className="field-radiobutton col-6">
                                         <RadioButton inputId="active" name="status" value="ACTIVE"
                                             onChange={(e) => setRowData(e.value, "status")}
-                                            checked={voucher.status === 'ACTIVE'} />
+                                            checked={voucher.status === 'ACTIVE'}
+                                            className={classNames({ 'p-invalid': errors.field === 'status' })}
+                                        />
                                         <label htmlFor="active">ACTIVE</label>
                                     </div>
                                     <div className="field-radiobutton col-6">
                                         <RadioButton inputId="inactive" name="status" value="INACTIVE"
                                             onChange={(e) => setRowData(e.value, "status")}
-                                            checked={voucher.status === 'INACTIVE'} />
+                                            checked={voucher.status === 'INACTIVE'}
+                                            className={classNames({ 'p-invalid': errors.field === 'status' })}
+                                        />
                                         <label htmlFor="inactive">INACTIVE</label>
                                     </div>
                                     <div className="field-radiobutton col-6">
                                         <RadioButton inputId="expired" name="status" value="EXPIRED"
                                             onChange={(e) => setRowData(e.value, "status")}
-                                            checked={voucher.status === 'EXPIRED'} />
+                                            checked={voucher.status === 'EXPIRED'}
+                                            className={classNames({ 'p-invalid': errors.field === 'status' })}
+                                        />
                                         <label htmlFor="expired">EXPIRED</label>
                                     </div>
                                 </div>
@@ -315,15 +448,19 @@ const VoucherPage = () => {
                                 <label htmlFor="percent">Phần trăm</label>
                                 <InputNumber
                                     value={voucher.percent}
+                                    min={0}
+                                    max={100}
                                     onChange={(event) => setRowData(event.value, "percent")}
                                     suffix="%"
+                                    className={classNames({ 'p-invalid': errors.field === 'percent' })}
                                 />
                             </div>
                             <div className="field">
-                                <label htmlFor="amount">Giá</label>
+                                <label htmlFor="amount">Số lượng</label>
                                 <InputNumber
                                     value={voucher.amount}
                                     onChange={(event) => setRowData(event.value, "amount")}
+                                    className={classNames({ 'p-invalid': errors.field === 'amount' })}
                                 />
                             </div>
                             <div className="field">
@@ -331,11 +468,12 @@ const VoucherPage = () => {
                                 <InputNumber
                                     value={voucher.prerequisiteValue}
                                     onChange={(event) => setRowData(event.value, "prerequisiteValue")}
+                                    className={classNames({ 'p-invalid': errors.field === 'prerequisiteValue' })}
                                 />
                             </div>
                             <div className='flex align-items-center justify-content-center'>
                                 <Button label="Hủy" type='reset' icon="pi pi-times" text onClick={hideDialog} />
-                                <Button label="Lưu" icon="pi pi-check" loading={loading} onClick={() => onSubmit()} />
+                                <Button label="Lưu" icon="pi pi-check" loading={loading} />
                             </div>
                         </form>
                     </Dialog>

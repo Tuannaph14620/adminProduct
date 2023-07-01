@@ -8,7 +8,6 @@ import { InputText } from 'primereact/inputtext';
 import { Toast } from 'primereact/toast';
 import { Toolbar } from 'primereact/toolbar';
 import { classNames } from 'primereact/utils';
-import { useForm } from 'react-hook-form';
 import { addMaterial, listMaterial, removeMaterial, updateMaterial } from '../../api/material';
 const MaterialPage = () => {
     let emptyProduct = {
@@ -17,6 +16,7 @@ const MaterialPage = () => {
         code: null,
     };
     const [materials, setMaterials] = useState(null);
+    const [errors, setErrors] = useState({ field: "" });
     const [productDialog, setProductDialog] = useState(false);
     const [deleteProductDialog, setDeleteProductDialog] = useState(false);
     const [deleteProductsDialog, setDeleteProductsDialog] = useState(false);
@@ -40,7 +40,7 @@ const MaterialPage = () => {
                 textSearch: "",
                 pageReq: {
                     page: 0,
-                    pageSize: 15,
+                    pageSize: 1000,
                     sortField: "",
                     sortDirection: ""
                 }
@@ -54,25 +54,32 @@ const MaterialPage = () => {
             setLoading(false);
         });
     };
-    const { register, handleSubmit, formState: { errors }, reset } = useForm()
 
-    const onSubmit = data => {
+    const onSubmit = (event) => {
         setLoading(true);
+        event.preventDefault();
+        if (!validate()) {
+            setLoading(false);
+            return;
+        }
+        setErrors({ field: '' })
         if (editMaterial) {
-            updateMaterial(data).then((res) => {
-                searchAll();
-                setLoading(false);
-                setProductDialog(false)
-                reset();
-                toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Sửa thành công', life: 1000 });
+            updateMaterial(material).then((res) => {
+                if (res) {
+                    searchAll();
+                    setLoading(false);
+                    setProductDialog(false)
+                    toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Sửa thành công', life: 1000 });
+                }
             })
         } else {
-            addMaterial(data).then((res) => {
-                searchAll();
-                setLoading(false);
-                setProductDialog(false)
-                reset();
-                toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Thêm thành công', life: 1000 });
+            addMaterial(material).then((res) => {
+                if (res) {
+                    searchAll();
+                    setLoading(false);
+                    setProductDialog(false)
+                    toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Thêm thành công', life: 1000 });
+                }
             })
         }
     }
@@ -84,6 +91,8 @@ const MaterialPage = () => {
 
     const hideDialog = () => {
         setMaterial(emptyProduct)
+        setLoading(false)
+        setErrors({ field: '' });
         setProductDialog(false);
         setEditMaterial(false)
     };
@@ -102,7 +111,7 @@ const MaterialPage = () => {
             name: material?.name,
             code: material?.code,
         }
-        reset(data);
+        setMaterial(data)
         setEditMaterial(true);
         setProductDialog(true);
     };
@@ -173,7 +182,7 @@ const MaterialPage = () => {
 
     const header = (
         <div className="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
-            <h5 className="m-0">Nguyên liệu</h5>
+            <h4 className="m-0">Nguyên liệu</h4>
             <span className="block mt-2 md:mt-0 p-input-icon-left">
                 <i className="pi pi-search" />
                 <InputText type="search" onChange={(e) => setGlobalFilter(e.target.value)} placeholder="Tìm kiếm" />
@@ -192,7 +201,33 @@ const MaterialPage = () => {
             <Button label="Yes" icon="pi pi-check" text onClick={deleteSelectedProducts} />
         </>
     );
-
+    const validate = () => {
+        const _dataTable = { ...material };
+        const _error = { ...errors };
+        if (!_dataTable.code) {
+            _error.field = "code";
+            toast.current.show({ severity: 'warn', summary: 'Cảnh báo', detail: 'Vui lòng nhập mã nguyên liệu', life: 3000 });
+            setErrors(_error);
+            return false;
+        }
+        if (!_dataTable.name) {
+            _error.field = 'name';
+            toast.current.show({ severity: 'warn', summary: 'Cảnh báo', detail: 'Vui lòng nhập tên nguyên liệu', life: 3000 });
+            setErrors(_error);
+            return false;
+        }
+        return true;
+    }
+    const setRowData = (value, field) => {
+        const table = { ...material };
+        switch (field) {
+            default: {
+                setErrors({ field: '' })
+                table[field] = value;
+            }
+        }
+        setMaterial(table);
+    };
     return (
         <div className="grid crud-demo">
             <div className="col-12">
@@ -226,21 +261,22 @@ const MaterialPage = () => {
                     </DataTable>
 
                     <Dialog visible={productDialog} style={{ width: '450px' }} header={editMaterial ? "Sửa nguyên liệu" : "Thêm mới nguyên liệu"} modal className="p-fluid" onHide={hideDialog}>
-                        <form onSubmit={handleSubmit(onSubmit)}>
-                            <InputText {...register('id')} id="id" hidden />
+                        <form onSubmit={onSubmit}>
                             <div className="field">
                                 <label htmlFor="code">Mã nguyên liệu</label>
                                 <InputText
-                                    {...register('code', { required: true })}
                                     id="code"
-                                    className={classNames({ 'p-invalid': errors.code })} />
+                                    value={material.code}
+                                    onChange={(event) => setRowData(event.target.value, "code")}
+                                    className={classNames({ 'p-invalid': errors.field === 'code' })} />
                             </div>
                             <div className="field">
                                 <label htmlFor="name">Tên nguyên liệu</label>
                                 <InputText
-                                    {...register('name', { required: true })}
                                     id="name"
-                                    className={classNames({ 'p-invalid': errors.name })} />
+                                    value={material.name}
+                                    onChange={(event) => setRowData(event.target.value, "name")}
+                                    className={classNames({ 'p-invalid': errors.field === 'name' })} />
                             </div>
 
                             <div className='flex align-items-center justify-content-center'>

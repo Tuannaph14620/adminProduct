@@ -5,13 +5,13 @@ import { DataTable } from 'primereact/datatable';
 import { Dialog } from 'primereact/dialog';
 import { FileUpload } from 'primereact/fileupload';
 import { InputText } from 'primereact/inputtext';
-import { InputTextarea } from 'primereact/inputtextarea';
 import { Toast } from 'primereact/toast';
 import { Toolbar } from 'primereact/toolbar';
 import { addUser, listUser, removeCate, updateCate } from '../../api/user';
 import { RadioButton } from 'primereact/radiobutton';
 import moment from 'moment';
 import { Calendar } from 'primereact/calendar';
+import { classNames } from 'primereact/utils';
 const UserPage = () => {
     let emptyProduct = {
         id: null,
@@ -29,6 +29,7 @@ const UserPage = () => {
     const [deleteProductDialog, setDeleteProductDialog] = useState(false);
     const [deleteProductsDialog, setDeleteProductsDialog] = useState(false);
     const [user, setUser] = useState(emptyProduct);
+    const [errors, setErrors] = useState({ field: "" });
     const [statusEdit, setStatusEdit] = useState(false)
     const [selectedProducts, setSelectedProducts] = useState(null);
     const [globalFilter, setGlobalFilter] = useState(null);
@@ -48,23 +49,26 @@ const UserPage = () => {
                 role: "",
                 pageReq: {
                     page: 0,
-                    pageSize: 15,
+                    pageSize: 100,
                     sortField: "createdDate",
                     sortDirection: "desc"
                 }
             }
         ).then((res) => {
-            // const _paginator = { ...paginator };
-            // _paginator.total = res.total;
-            // setPaginator(_paginator);
             const _data = res?.data.data
             setUsers(_data);
             setLoading(false);
         });
     };
 
-    const onSubmit = () => {
+    const onSubmit = (event) => {
         setLoading(true);
+        event.preventDefault();
+        if (!validate()) {
+            setLoading(false);
+            return;
+        }
+        setErrors({ field: '' })
         if (statusEdit) {
             updateCate(user).then((res) => {
                 searchAll();
@@ -91,6 +95,8 @@ const UserPage = () => {
 
     const hideDialog = () => {
         setUser(emptyProduct)
+        setErrors({ field: '' });
+        setLoading(false);
         setProductDialog(false);
         setStatusEdit(false)
     };
@@ -168,16 +174,6 @@ const UserPage = () => {
             </React.Fragment>
         );
     };
-
-    const imageBodyTemplate = (rowData) => {
-        return (
-            <>
-                <span className="p-column-title">Image</span>
-                <img src={`${rowData.image}`} alt={rowData.image} className="shadow-2" width="100" />
-            </>
-        );
-    };
-
     const actionBodyTemplate = (rowData) => {
         return (
             <>
@@ -208,10 +204,52 @@ const UserPage = () => {
             <Button label="Yes" icon="pi pi-check" text onClick={deleteSelectedProducts} />
         </>
     );
+    const validate = () => {
+        const _dataTable = { ...user };
+        const _error = { ...errors };
+        if (!_dataTable.firstName) {
+            _error.field = "firstName";
+            toast.current.show({ severity: 'warn', summary: 'Cảnh báo', detail: 'Vui lòng nhập tên người dùng', life: 3000 });
+            setErrors(_error);
+            return false;
+        }
+        if (!_dataTable.lastName) {
+            _error.field = 'lastName';
+            toast.current.show({ severity: 'warn', summary: 'Cảnh báo', detail: 'Vui lòng nhập Họ đệm người dùng', life: 3000 });
+            setErrors(_error);
+            return false;
+        }
+        if (!_dataTable.email) {
+            _error.field = 'email';
+            toast.current.show({ severity: 'warn', summary: 'Cảnh báo', detail: 'Vui lòng nhập email', life: 3000 });
+            setErrors(_error);
+            return false;
+        }
+        if (!_dataTable.password) {
+            _error.field = 'password';
+            toast.current.show({ severity: 'warn', summary: 'Cảnh báo', detail: 'Vui lòng nhập mật khẩu', life: 3000 });
+            setErrors(_error);
+            return false;
+        }
+        if (!_dataTable.phone) {
+            _error.field = 'phone';
+            toast.current.show({ severity: 'warn', summary: 'Cảnh báo', detail: 'Vui lòng nhập số điện thoại', life: 3000 });
+            setErrors(_error);
+            return false;
+        }
+        if (!_dataTable.dob) {
+            _error.field = 'dob';
+            toast.current.show({ severity: 'warn', summary: 'Cảnh báo', detail: 'Vui lòng nhập ngày sinh', life: 3000 });
+            setErrors(_error);
+            return false;
+        }
+        return true;
+    }
     const setRowData = (value, field) => {
         const table = { ...user };
         switch (field) {
             default: {
+                setErrors({ field: '' })
                 table[field] = value;
             }
         }
@@ -252,13 +290,14 @@ const UserPage = () => {
                         {/* <Column header="Chức năng" body={(d) => actionBodyTemplate(d)} headerStyle={{ minWidth: '10rem' }}></Column> */}
                     </DataTable>
 
-                    <Dialog visible={productDialog} style={{ width: '600px' }} header={statusEdit ? "Sửa danh mục sản phẩm" : "Thêm mới danh mục sản phẩm"} modal className="p-fluid" onHide={hideDialog}>
-                        <form >
+                    <Dialog visible={productDialog} style={{ width: '600px' }} header={statusEdit ? "Sửa tài khoảng" : "Thêm mới tài khoảng"} modal className="p-fluid" onHide={hideDialog}>
+                        <form onSubmit={onSubmit} >
                             <div className="field">
                                 <label htmlFor="firstName">Tên</label>
                                 <InputText
                                     value={user.firstName}
                                     onChange={(event) => setRowData(event.target.value, "firstName")}
+                                    className={classNames({ 'p-invalid': errors.field === 'firstName' })}
                                     id="firstName" />
                             </div>
                             <div className="field">
@@ -266,6 +305,7 @@ const UserPage = () => {
                                 <InputText
                                     value={user.lastName}
                                     onChange={(event) => setRowData(event.target.value, "lastName")}
+                                    className={classNames({ 'p-invalid': errors.field === 'lastName' })}
                                     id="lastName" />
                             </div>
                             <div className="field">
@@ -273,6 +313,7 @@ const UserPage = () => {
                                 <InputText
                                     value={user.email}
                                     onChange={(event) => setRowData(event.target.value, "email")}
+                                    className={classNames({ 'p-invalid': errors.field === 'email' })}
                                     id="email" />
                             </div>
                             <div className="field">
@@ -280,13 +321,16 @@ const UserPage = () => {
                                 <InputText
                                     value={user.password}
                                     onChange={(event) => setRowData(event.target.value, "password")}
+                                    className={classNames({ 'p-invalid': errors.field === 'password' })}
                                     id="password" />
                             </div>
                             <div className="field">
                                 <label htmlFor="phone">Số điện thoại</label>
                                 <InputText
+                                    keyfilter='num'
                                     value={user.phone}
                                     onChange={(event) => setRowData(event.target.value, "phone")}
+                                    className={classNames({ 'p-invalid': errors.field === 'phone' })}
                                     id="phone" />
                             </div>
                             <div className="grid formgrid p-fluid fluid mb-2">
@@ -298,6 +342,7 @@ const UserPage = () => {
                                                 name="city"
                                                 onChange={() => setRowData(true, "gender")}
                                                 checked={user?.gender === true}
+                                                className={classNames({ 'p-invalid': errors.field === 'gender' })}
                                             />
                                             <label className='ml-2' htmlFor="city1">Nữ</label>
                                         </span>
@@ -309,6 +354,7 @@ const UserPage = () => {
                                                 name="city"
                                                 onChange={() => setRowData(false, "gender")}
                                                 checked={user?.gender === false}
+                                                className={classNames({ 'p-invalid': errors.field === 'gender' })}
                                             />
                                             <label className='ml-2' htmlFor="city1">Nam</label>
                                         </span>
@@ -320,11 +366,12 @@ const UserPage = () => {
                                 <Calendar
                                     value={user?.dob}
                                     onChange={(event) => setRowData(event.target.value, "dob")}
+                                    className={classNames({ 'p-invalid': errors.field === 'dob' })}
                                     showIcon placeholder="dd/mm/yyyy" />
                             </div>
                             <div className='flex align-items-center justify-content-center'>
                                 <Button label="Cancel" type='reset' icon="pi pi-times" text onClick={hideDialog} />
-                                <Button label="Save" type='submit' icon="pi pi-check" loading={loading} onClick={() => onSubmit()} />
+                                <Button label="Save" type='submit' icon="pi pi-check" loading={loading} />
                             </div>
                         </form>
                     </Dialog>

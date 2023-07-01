@@ -9,7 +9,6 @@ import { Toast } from 'primereact/toast';
 import { Toolbar } from 'primereact/toolbar';
 import { classNames } from 'primereact/utils';
 import { addColor, listColor, removeColor, updateColor } from '../../api/color';
-import { useForm } from 'react-hook-form';
 const ColorPage = () => {
     let emptyProduct = {
         id: null,
@@ -17,6 +16,7 @@ const ColorPage = () => {
         hex: null,
     };
     const [colors, setColors] = useState(null);
+    const [errors, setErrors] = useState({ field: "" });
     const [productDialog, setProductDialog] = useState(false);
     const [deleteProductDialog, setDeleteProductDialog] = useState(false);
     const [deleteProductsDialog, setDeleteProductsDialog] = useState(false);
@@ -54,25 +54,31 @@ const ColorPage = () => {
             setLoading(false);
         });
     };
-    const { register, handleSubmit, formState: { errors }, reset } = useForm()
-
-    const onSubmit = data => {
+    const onSubmit = (event) => {
         setLoading(true);
+        event.preventDefault();
+        if (!validate()) {
+            setLoading(false);
+            return;
+        }
+        setErrors({ field: '' })
         if (editColor) {
-            updateColor(data).then((res) => {
-                searchAll();
-                setLoading(false);
-                setProductDialog(false)
-                reset();
-                toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Sửa thành công', life: 1000 });
+            updateColor(color).then((res) => {
+                if (res) {
+                    searchAll();
+                    setLoading(false);
+                    setProductDialog(false)
+                    toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Sửa thành công', life: 1000 });
+                }
             })
         } else {
-            addColor(data).then((res) => {
-                searchAll();
-                setLoading(false);
-                setProductDialog(false)
-                reset();
-                toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Thêm thành công', life: 1000 });
+            addColor(color).then((res) => {
+                if (res) {
+                    searchAll();
+                    setLoading(false);
+                    setProductDialog(false)
+                    toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Sửa thành công', life: 1000 });
+                }
             })
         }
     }
@@ -83,7 +89,9 @@ const ColorPage = () => {
     };
 
     const hideDialog = () => {
-        setColor(emptyProduct)
+        setColor(emptyProduct);
+        setErrors({ field: "" });
+        setLoading(false);
         setProductDialog(false);
         setEditColor(false)
     };
@@ -102,7 +110,7 @@ const ColorPage = () => {
             name: color?.name,
             hex: color?.hex,
         }
-        reset(data)
+        setColor(data)
         setEditColor(true)
         setProductDialog(true);
     };
@@ -191,7 +199,33 @@ const ColorPage = () => {
             <Button label="Yes" icon="pi pi-check" text onClick={deleteSelectedProducts} />
         </>
     );
-
+    const validate = () => {
+        const _dataTable = { ...color };
+        const _error = { ...errors };
+        if (!_dataTable.name) {
+            _error.field = 'name';
+            toast.current.show({ severity: 'warn', summary: 'Cảnh báo', detail: 'Vui lòng nhập tên màu sắc', life: 3000 });
+            setErrors(_error);
+            return false;
+        }
+        if (!_dataTable.hex) {
+            _error.field = "hex";
+            toast.current.show({ severity: 'warn', summary: 'Cảnh báo', detail: 'Vui lòng nhập mã hex', life: 3000 });
+            setErrors(_error);
+            return false;
+        }
+        return true;
+    }
+    const setRowData = (value, field) => {
+        const table = { ...color };
+        switch (field) {
+            default: {
+                setErrors({ field: '' })
+                table[field] = value;
+            }
+        }
+        setColor(table);
+    };
     return (
         <div className="grid crud-demo">
             <div className="col-12">
@@ -225,21 +259,24 @@ const ColorPage = () => {
                     </DataTable>
 
                     <Dialog visible={productDialog} style={{ width: '450px' }} header={editColor ? "Sửa màu sắc" : "Thêm mới màu sắc"} modal className="p-fluid" onHide={hideDialog}>
-                        <form onSubmit={handleSubmit(onSubmit)}>
-                            <InputText {...register('id')} id="id" hidden />
+                        <form onSubmit={onSubmit}>
                             <div className="field">
                                 <label htmlFor="name">Tên màu sắc</label>
                                 <InputText
-                                    {...register('name', { required: true })}
+                                    value={color.name}
+                                    onChange={(event) => setRowData(event.target.value, "name")}
                                     id="name"
-                                    className={classNames({ 'p-invalid': errors.name })} />
+                                    className={classNames({
+                                        "p-invalid": errors.field === 'name'
+                                    })} />
                             </div>
                             <div className="field">
                                 <label htmlFor="hex">Mã hex</label>
                                 <InputText
-                                    {...register('hex', { required: true })}
+                                    value={color.hex}
+                                    onChange={(event) => setRowData(event.target.value, "hex")}
                                     id="hex"
-                                    className={classNames({ 'p-invalid': errors.hex })} />
+                                    className={classNames({ 'p-invalid': errors.field === 'hex' })} />
                             </div>
                             <div className='flex align-items-center justify-content-center'>
                                 <Button label="Cancel" type='reset' icon="pi pi-times" text onClick={hideDialog} />

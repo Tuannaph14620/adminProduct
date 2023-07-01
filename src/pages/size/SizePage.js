@@ -8,7 +8,6 @@ import { InputText } from 'primereact/inputtext';
 import { Toast } from 'primereact/toast';
 import { Toolbar } from 'primereact/toolbar';
 import { classNames } from 'primereact/utils';
-import { useForm } from 'react-hook-form';
 import { addSize, listSize, removeSize, updateSize } from '../../api/size';
 const SizePage = () => {
     let emptyProduct = {
@@ -25,6 +24,7 @@ const SizePage = () => {
     const [selectedProducts, setSelectedProducts] = useState(null);
     const [globalFilter, setGlobalFilter] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [errors, setErrors] = useState({ field: "" });
     const toast = useRef(null);
     const dt = useRef(null);
     useEffect(() => {
@@ -54,25 +54,28 @@ const SizePage = () => {
             setLoading(false);
         });
     };
-    const { register, handleSubmit, formState: { errors }, reset } = useForm()
 
-    const onSubmit = data => {
+    const onSubmit = (event) => {
         setLoading(true);
+        event.preventDefault();
+        if (!validate()) {
+            setLoading(false);
+            return;
+        }
+        setErrors({ field: '' })
         if (editSize) {
-            updateSize(data).then((res) => {
+            updateSize(size).then((res) => {
                 searchAll();
                 setLoading(false);
                 setProductDialog(false)
-                reset();
                 toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Sửa thành công', life: 1000 });
             })
         } else {
-            addSize(data).then((res) => {
+            addSize(size).then((res) => {
                 searchAll();
                 setLoading(false);
                 setProductDialog(false)
-                reset();
-                toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Thêm thành công', life: 1000 });
+                toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Sửa thành công', life: 1000 });
             })
         }
     }
@@ -83,7 +86,8 @@ const SizePage = () => {
     };
 
     const hideDialog = () => {
-        setSize(emptyProduct)
+        setSize(emptyProduct);
+        setErrors({ field: '' });
         setProductDialog(false);
         setEditSize(false)
     };
@@ -102,7 +106,7 @@ const SizePage = () => {
             name: size?.name,
             code: size?.code,
         }
-        reset(data);
+        setSize(data)
         setEditSize(true);
         setProductDialog(true);
     };
@@ -173,7 +177,7 @@ const SizePage = () => {
 
     const header = (
         <div className="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
-            <h5 className="m-0">Kích cỡ</h5>
+            <h4 className="m-0">Kích cỡ</h4>
             <span className="block mt-2 md:mt-0 p-input-icon-left">
                 <i className="pi pi-search" />
                 <InputText type="search" onChange={(e) => setGlobalFilter(e.target.value)} placeholder="Tìm kiếm" />
@@ -192,7 +196,33 @@ const SizePage = () => {
             <Button label="Yes" icon="pi pi-check" text onClick={deleteSelectedProducts} />
         </>
     );
-
+    const validate = () => {
+        const _dataTable = { ...size };
+        const _error = { ...errors };
+        if (!_dataTable.code) {
+            _error.field = "code";
+            toast.current.show({ severity: 'warn', summary: 'Cảnh báo', detail: 'Vui lòng nhập mã kích cỡ', life: 3000 });
+            setErrors(_error);
+            return false;
+        }
+        if (!_dataTable.name) {
+            _error.field = 'name';
+            toast.current.show({ severity: 'warn', summary: 'Cảnh báo', detail: 'Vui lòng nhập tên kích cỡ', life: 3000 });
+            setErrors(_error);
+            return false;
+        }
+        return true;
+    }
+    const setRowData = (value, field) => {
+        const table = { ...size };
+        switch (field) {
+            default: {
+                setErrors({ field: '' })
+                table[field] = value;
+            }
+        }
+        setSize(table);
+    };
     return (
         <div className="grid crud-demo">
             <div className="col-12">
@@ -226,21 +256,22 @@ const SizePage = () => {
                     </DataTable>
 
                     <Dialog visible={productDialog} style={{ width: '450px' }} header={editSize ? "Sửa kích cỡ" : "Thêm mới kích cỡ"} modal className="p-fluid" onHide={hideDialog}>
-                        <form onSubmit={handleSubmit(onSubmit)}>
-                            <InputText {...register('id')} id="id" hidden />
+                        <form onSubmit={onSubmit}>
                             <div className="field">
                                 <label htmlFor="code">Mã kích cỡ</label>
                                 <InputText
-                                    {...register('code', { required: true })}
                                     id="code"
-                                    className={classNames({ 'p-invalid': errors.code })} />
+                                    value={size.code}
+                                    onChange={(event) => setRowData(event.target.value, "code")}
+                                    className={classNames({ 'p-invalid': errors.field === 'code' })} />
                             </div>
                             <div className="field">
                                 <label htmlFor="name">Tên kích cỡ</label>
                                 <InputText
-                                    {...register('name', { required: true })}
                                     id="name"
-                                    className={classNames({ 'p-invalid': errors.name })} />
+                                    value={size.name}
+                                    onChange={(event) => setRowData(event.target.value, "name")}
+                                    className={classNames({ 'p-invalid': errors.field === 'name' })} />
                             </div>
 
                             <div className='flex align-items-center justify-content-center'>

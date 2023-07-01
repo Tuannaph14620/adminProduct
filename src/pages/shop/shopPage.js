@@ -36,7 +36,9 @@ const ShopPage = () => {
     const [orderDelete, setOrderDelete] = useState(null)
     const [selectedProducts, setSelectedProducts] = useState(null);
     const [vouchers, setVouchers] = useState(null);
+    const [vouchersChecked, setVouchersChecked] = useState(false);
     const [loading, setLoading] = useState(true);
+    const [checkRemoveOrder, setCheckRemoveOrder] = useState(null, null, null);
     const [error, setError] = useState({ field: "" });
     const toast = useRef(null);
     const dt = useRef(null);
@@ -138,20 +140,15 @@ const ShopPage = () => {
             setVouchers(_data);
         });
     }
-    const checkVouchers = (voucher, total) => {
-        checkVoucher(
-            {
-                "voucherCode": voucher,
-                "shopTotal": total
-            }
-        ).then((res) => {
-            const _data = res?.data.data
-            toast.current.show({ severity: 'success', summary: 'Successful', detail: _data?.message, life: 1000 });
-            return _data
-        });
-    }
 
     const hideDeleteProductDialog = () => {
+        console.log(checkRemoveOrder);
+        const index = checkRemoveOrder.rowIndex;
+        const table = [...productSelected];
+        const row = { ...table[index] };
+        row["quantity"] = 1;
+        table[index] = row;
+        setProductSelected(table);
         setDeleteProductDialog(false);
     };
 
@@ -163,7 +160,7 @@ const ShopPage = () => {
     const actionBodyTemplate = (rowData) => {
         return (
             <>
-                <Button icon="pi pi-trash" severity="warning" rounded onClick={() => confirmDeleteProduct(rowData)} />
+                <Button icon="pi pi-trash" severity="warning" disabled={vouchersChecked} rounded onClick={() => confirmDeleteProduct(rowData)} />
             </>
         );
     };
@@ -179,6 +176,7 @@ const ShopPage = () => {
                     options={product}
                     placeholder='Chọn sản phẩm'
                     showClear
+                    disabled={vouchersChecked}
                     filter
                     optionLabel="productName"
                     optionValue="id"
@@ -204,11 +202,12 @@ const ShopPage = () => {
         const table = { ...order };
         switch (field) {
             case "voucherCode":
-                table[field] = value;
-                if (table[field] == null) {
+                if (value == null) {
+                    table.voucherCode = null;
                     table.discountPrice = "0"
                 } else {
-                    table.discountPrice = vouchers?.find(({ code }) => code === value)?.prerequisiteValue.toString()
+                    table.voucherCode = value?.voucherCode;
+                    table.discountPrice = value?.voucherDiscount.toString()
                 }
 
             default: {
@@ -234,19 +233,15 @@ const ShopPage = () => {
         setProductSelected(table);
     };
 
-    const setRowProductOrder = (value, field, rowIndex, product) => {
+    const setRowProductOrder = (value, field, rowIndex) => {
         const index = rowIndex.rowIndex;
         const table = [...productSelected];
         const row = { ...table[index] };
 
         switch (field) {
             default: {
-                if (value == 0) {
-                    confirmDeleteProduct(product)
-                } else {
-                    row[field] = value;
-                    table[index] = row;
-                }
+                row[field] = value;
+                table[index] = row;
             }
         }
         setProductSelected(table);
@@ -286,9 +281,16 @@ const ShopPage = () => {
                             field="qty"
                             header="Số lượng"
                             body={(d, index) => <InputNumber
+                                disabled={vouchersChecked}
                                 inputId="minmax-buttons"
                                 value={d?.quantity}
-                                onValueChange={(e) => { setRowProductOrder(e.value, 'quantity', index, d) }}
+                                onValueChange={(e) => {
+                                    if (e.value === 0) {
+                                        confirmDeleteProduct(d)
+                                        setCheckRemoveOrder(index)
+                                    }
+                                    setRowProductOrder(e.value, 'quantity', index)
+                                }}
                                 mode="decimal"
                                 showButtons min={0} max={100} />}
                         ></Column>
@@ -361,17 +363,33 @@ const ShopPage = () => {
                     <div className="field">
                         <label htmlFor="voucherCode">Voucher</label>
                         <Dropdown
-                            value={order?.voucherCode}
+                            value={order?.voucherCode?.voucherCode}
                             options={vouchers}
                             showClear
                             filter
                             optionLabel="code"
                             optionValue="code"
                             onChange={(event) => {
-                                const a = checkVouchers(event.target.value, (sumArray(productSelected.map((e) => e.price * e.quantity)) - (order?.discountPrice ? order?.discountPrice : 0) - (order.discount ? order.discount : 0)))
-                                if (a) {
-                                    setRowData(event.target.value, a?.voucherDiscount)
-                                }
+                                checkVoucher(
+                                    {
+                                        "voucherCode": event.target.value,
+                                        "shopTotal": (sumArray(productSelected.map((e) => e.price * e.quantity)) - (order?.discountPrice ? order?.discountPrice : 0) - (order.discount ? order.discount : 0))
+                                    }
+                                ).then((res) => {
+                                    const _data = res?.data.data;
+                                    if (_data?.message === "Được phép sử dụng voucher !") {
+                                        toast.current.show({ severity: 'success', summary: 'Thành công', detail: _data?.message, life: 1000 });
+                                    } else {
+                                        toast.current.show({ severity: 'warn', summary: 'Cảnh báo', detail: _data?.message, life: 1000 });
+                                    }
+                                    if (_data?.message === "Được phép sử dụng voucher !") {
+                                        setRowData(_data, "voucherCode")
+                                        setVouchersChecked(true)
+                                    } else {
+                                        setRowData(null, "voucherCode")
+                                        setVouchersChecked(false)
+                                    }
+                                });
                             }}
                         />
                     </div>
