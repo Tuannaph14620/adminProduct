@@ -15,6 +15,7 @@ import { useParams } from 'react-router-dom';
 import { Dropdown } from 'primereact/dropdown';
 import { Image } from 'primereact/image';
 import TemplateDemo from '../../component/FileUpload';
+import { classNames } from 'primereact/utils';
 const DeatailProductPage = (props) => {
     const { id } = useParams();
     let emptyProduct = {
@@ -27,6 +28,7 @@ const DeatailProductPage = (props) => {
         sizeId: null
     };
     const [products, setProducts] = useState(null);
+    const [errors, setErrors] = useState({ field: "" });
     const [productDetail, setProductDetail] = useState(null);
     const [productDialog, setProductDialog] = useState(false);
     const [deleteProductDialog, setDeleteProductDialog] = useState(false);
@@ -124,8 +126,14 @@ const DeatailProductPage = (props) => {
         })
     }
 
-    const onSubmit = () => {
+    const onSubmit = (event) => {
         setLoading(true);
+        event.preventDefault();
+        if (!validate()) {
+            setLoading(false);
+            return;
+        }
+        setErrors({ field: '' })
         if (editStatus) {
             updateProductOption(product).then((res) => {
                 if (res) {
@@ -153,6 +161,7 @@ const DeatailProductPage = (props) => {
 
     const openNew = () => {
         getAll();
+        setErrors({ field: '' })
         setProduct(emptyProduct)
         setProductDialog(true);
     };
@@ -250,12 +259,46 @@ const DeatailProductPage = (props) => {
             <Button label="Yes" icon="pi pi-check" text onClick={deleteSelectedProducts} />
         </>
     );
-
+    const validate = () => {
+        const _dataTable = { ...product };
+        const _error = { ...errors };
+        if (!_dataTable.image) {
+            _error.field = "image";
+            toast.current.show({ severity: 'warn', summary: 'Cảnh báo', detail: 'Vui lòng nhập ảnh sản phẩm', life: 3000 });
+            setErrors(_error);
+            return false;
+        }
+        if (!_dataTable.colorId) {
+            _error.field = 'colorId';
+            toast.current.show({ severity: 'warn', summary: 'Cảnh báo', detail: 'Vui lòng nhập màu sản phẩm', life: 3000 });
+            setErrors(_error);
+            return false;
+        }
+        if (!_dataTable.sizeId) {
+            _error.field = 'sizeId';
+            toast.current.show({ severity: 'warn', summary: 'Cảnh báo', detail: 'Vui lòng nhập kích cỡ sản phẩm', life: 3000 });
+            setErrors(_error);
+            return false;
+        }
+        if (!_dataTable.qty) {
+            _error.field = 'qty';
+            toast.current.show({ severity: 'warn', summary: 'Cảnh báo', detail: 'Vui lòng nhập số lượng', life: 3000 });
+            setErrors(_error);
+            return false;
+        }
+        if (!_dataTable.price) {
+            _error.field = 'price';
+            toast.current.show({ severity: 'warn', summary: 'Cảnh báo', detail: 'Vui lòng nhập đơn giá', life: 3000 });
+            setErrors(_error);
+            return false;
+        }
+        return true;
+    }
     const setRowData = (value, field) => {
-
         const table = { ...product };
         switch (field) {
             default: {
+                setErrors({ field: '' })
                 table[field] = value;
             }
         }
@@ -322,7 +365,7 @@ const DeatailProductPage = (props) => {
                     </DataTable>
 
                     <Dialog visible={productDialog} style={{ width: '450px' }} header={editStatus ? "Sửa sản phẩm " : "Thêm mới sản phẩm"} modal className="p-fluid" onHide={hideDialog}>
-                        <form >
+                        <form onSubmit={onSubmit}>
                             <div className="field">
                                 <label htmlFor="image">Hình ảnh</label>
                                 <TemplateDemo parentCallback={callbackFunction}></TemplateDemo>
@@ -334,11 +377,11 @@ const DeatailProductPage = (props) => {
                                     value={product?.colorId}
                                     filter
                                     showClear
-                                    className="flex p-align-center"
                                     options={color}
                                     optionLabel="nameColor"
                                     optionValue="id"
                                     onChange={(event) => setRowData(event.target.value, "colorId")}
+                                    className={classNames({ 'p-invalid': errors.field === 'colorId' })}
                                 ></Dropdown>
                             </div>
                             <div className="field">
@@ -347,11 +390,11 @@ const DeatailProductPage = (props) => {
                                     value={product?.sizeId}
                                     filter
                                     showClear
-                                    className="flex p-align-center"
                                     options={size}
                                     optionLabel="nameSize"
                                     optionValue="id"
                                     onChange={(event) => setRowData(event.target.value, "sizeId")}
+                                    className={classNames({ 'p-invalid': errors.field === 'sizeId' })}
                                 ></Dropdown>
                             </div>
                             <div className="field">
@@ -359,6 +402,7 @@ const DeatailProductPage = (props) => {
                                 <InputNumber
                                     value={product.qty}
                                     onChange={(event) => setRowData(event.value, "qty")}
+                                    className={classNames({ 'p-invalid': errors.field === 'qty' })}
                                 />
                             </div>
                             <div className="field">
@@ -366,11 +410,12 @@ const DeatailProductPage = (props) => {
                                 <InputNumber
                                     value={product.price}
                                     onChange={(event) => setRowData(event.value, "price")}
+                                    className={classNames({ 'p-invalid': errors.field === 'price' })}
                                 />
                             </div>
                             <div className='flex align-items-center justify-content-center'>
                                 <Button label="Hủy" type='reset' icon="pi pi-times" text onClick={hideDialog} />
-                                <Button label="Lưu" icon="pi pi-check" loading={loading} onClick={() => onSubmit()} />
+                                <Button label="Lưu" icon="pi pi-check" loading={loading} />
                             </div>
                         </form>
                     </Dialog>

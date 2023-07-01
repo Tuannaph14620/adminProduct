@@ -229,6 +229,12 @@ const VoucherPage = () => {
             setErrors(_error);
             return false;
         }
+        if (_dataTable.des && _dataTable.des.length < 20) {
+            _error.field = 'des';
+            toast.current.show({ severity: 'warn', summary: 'Cảnh báo', detail: 'Mô tả ít nhất 20 kí tự', life: 3000 });
+            setErrors(_error);
+            return false;
+        }
         if (!_dataTable.startDate) {
             _error.field = 'startDate';
             toast.current.show({ severity: 'warn', summary: 'Cảnh báo', detail: 'Vui lòng nhập từ ngày', life: 3000 });
@@ -381,6 +387,7 @@ const VoucherPage = () => {
                                 <label htmlFor="des">Mô tả</label>
                                 <InputTextarea
                                     id="des"
+                                    minLength={20}
                                     value={voucher.des}
                                     onChange={(event) => setRowData(event.target.value, "des")}
                                     rows={3} cols={20}

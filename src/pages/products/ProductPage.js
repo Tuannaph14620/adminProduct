@@ -15,6 +15,7 @@ import moment from 'moment/moment';
 import { listCate } from '../../api/category';
 import { listMaterial } from '../../api/material';
 import { useNavigate } from 'react-router-dom';
+import { classNames } from 'primereact/utils';
 const ProductPage = () => {
     let emptyProduct = {
         id: null,
@@ -38,6 +39,7 @@ const ProductPage = () => {
     const [selectedProducts, setSelectedProducts] = useState(null);
     const [globalFilter, setGlobalFilter] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [errors, setErrors] = useState({ field: "" });
     const toast = useRef(null);
     const dt = useRef(null);
     const navigator = useNavigate()
@@ -116,8 +118,14 @@ const ProductPage = () => {
         })
     }
 
-    const onSubmit = () => {
+    const onSubmit = (event) => {
         setLoading(true);
+        event.preventDefault();
+        if (!validate()) {
+            setLoading(false);
+            return;
+        }
+        setErrors({ field: '' })
         if (editStatus) {
             updateProduct(product).then((res) => {
                 if (res) {
@@ -145,6 +153,7 @@ const ProductPage = () => {
 
     const openNew = () => {
         getAll();
+        setErrors({ field: '' });
         setProduct(emptyProduct)
         setProductDialog(true);
     };
@@ -255,12 +264,71 @@ const ProductPage = () => {
             <Button label="Yes" icon="pi pi-check" text onClick={deleteSelectedProducts} />
         </>
     );
-
+    const validate = () => {
+        const _dataTable = { ...product };
+        const _error = { ...errors };
+        if (!_dataTable.name) {
+            _error.field = "name";
+            toast.current.show({ severity: 'warn', summary: 'Cảnh báo', detail: 'Vui lòng nhập tên sản phẩm', life: 3000 });
+            setErrors(_error);
+            return false;
+        }
+        if (!_dataTable.des) {
+            _error.field = 'des';
+            toast.current.show({ severity: 'warn', summary: 'Cảnh báo', detail: 'Vui lòng nhập mô tả', life: 3000 });
+            setErrors(_error);
+            return false;
+        }
+        if (_dataTable.des && _dataTable.des.length < 20) {
+            _error.field = 'des';
+            toast.current.show({ severity: 'warn', summary: 'Cảnh báo', detail: 'Mô tả ít nhất 20 kí tự', life: 3000 });
+            setErrors(_error);
+            return false;
+        }
+        if (!_dataTable.categoryId) {
+            _error.field = 'categoryId';
+            toast.current.show({ severity: 'warn', summary: 'Cảnh báo', detail: 'Vui lòng nhập danh mục sản phẩm', life: 3000 });
+            setErrors(_error);
+            return false;
+        }
+        if (!_dataTable.materialId) {
+            _error.field = 'materialId';
+            toast.current.show({ severity: 'warn', summary: 'Cảnh báo', detail: 'Vui lòng nhập nguyên liệu', life: 3000 });
+            setErrors(_error);
+            return false;
+        }
+        if (!_dataTable.height) {
+            _error.field = 'height';
+            toast.current.show({ severity: 'warn', summary: 'Cảnh báo', detail: 'Vui lòng nhập chiều cao', life: 3000 });
+            setErrors(_error);
+            return false;
+        }
+        if (!_dataTable.length) {
+            _error.field = 'length';
+            toast.current.show({ severity: 'warn', summary: 'Cảnh báo', detail: 'Vui lòng nhập chiều dài', life: 3000 });
+            setErrors(_error);
+            return false;
+        }
+        if (!_dataTable.weight) {
+            _error.field = 'weight';
+            toast.current.show({ severity: 'warn', summary: 'Cảnh báo', detail: 'Vui lòng nhập cân nặng', life: 3000 });
+            setErrors(_error);
+            return false;
+        }
+        if (!_dataTable.width) {
+            _error.field = 'width';
+            toast.current.show({ severity: 'warn', summary: 'Cảnh báo', detail: 'Vui lòng nhập chiều rộng', life: 3000 });
+            setErrors(_error);
+            return false;
+        }
+        return true;
+    }
     const setRowData = (value, field) => {
 
         const table = { ...product };
         switch (field) {
             default: {
+                setErrors({ field: '' });
                 table[field] = value;
             }
         }
@@ -297,19 +365,20 @@ const ProductPage = () => {
                         <Column field="categoryName" header="Tên danh mục" sortable body={(d) => <span >{d.categoryName}</span>} headerStyle={{ minWidth: '15rem' }}></Column>
                         <Column field="materialName" header="Nguyên liệu" sortable body={(d) => <span >{d.materialName}</span>} headerStyle={{ minWidth: '15rem' }}></Column>
                         <Column field="des" header="Mô tả" sortable body={(d) => <span >{d.des}</span>} headerStyle={{ minWidth: '15rem' }}></Column>
-                        <Column field="Số lượng" header="qty" sortable body={(d) => <span >{d?.qty}</span>} headerStyle={{ minWidth: '15rem' }}></Column>
-                        <Column field="maxPrice" header="minPrice" sortable body={(d) => <span >{d?.maxPrice?.toLocaleString('vi', { style: 'currency', currency: 'VND' })}</span>} headerStyle={{ minWidth: '15rem' }}></Column>
-                        <Column field="minPrice" header="minPrice" sortable body={(d) => <span >{d?.minPrice?.toLocaleString('vi', { style: 'currency', currency: 'VND' })}</span>} headerStyle={{ minWidth: '15rem' }}></Column>
+                        <Column field="qty" header="Số lượng" sortable body={(d) => <span >{d?.qty}</span>} headerStyle={{ minWidth: '15rem' }}></Column>
+                        <Column field="maxPrice" header="Giá thấp nhất" sortable body={(d) => <span >{d?.maxPrice?.toLocaleString('vi', { style: 'currency', currency: 'VND' })}</span>} headerStyle={{ minWidth: '15rem' }}></Column>
+                        <Column field="minPrice" header="Giá cao nhất" sortable body={(d) => <span >{d?.minPrice?.toLocaleString('vi', { style: 'currency', currency: 'VND' })}</span>} headerStyle={{ minWidth: '15rem' }}></Column>
                         <Column header="Chức năng" body={(d) => actionBodyTemplate(d)} headerStyle={{ minWidth: '15rem' }}></Column>
                     </DataTable>
 
                     <Dialog visible={productDialog} style={{ width: '450px' }} header={editStatus ? "Sửa sản phẩm " : "Thêm mới sản phẩm"} modal className="p-fluid" onHide={hideDialog}>
-                        <form >
+                        <form onSubmit={onSubmit} >
                             <div className="field">
                                 <label htmlFor="name">Tên sản phẩm</label>
                                 <InputText
                                     onChange={(event) => setRowData(event.target.value, "name")}
                                     value={product.name}
+                                    className={classNames({ 'p-invalid': errors.field === 'name' })}
                                     id="name" />
                             </div>
                             <div className="field">
@@ -318,6 +387,7 @@ const ProductPage = () => {
                                     id="des"
                                     value={product.des}
                                     onChange={(event) => setRowData(event.target.value, "des")}
+                                    className={classNames({ 'p-invalid': errors.field === 'des' })}
                                     rows={3} cols={20} />
                             </div>
                             <div className="field">
@@ -329,6 +399,7 @@ const ProductPage = () => {
                                     filter
                                     optionLabel="nameCate"
                                     optionValue="id"
+                                    className={classNames({ 'p-invalid': errors.field === 'categoryId' })}
                                     onChange={(event) => setRowData(event.target.value, "categoryId")}
                                 />
                             </div>
@@ -342,6 +413,7 @@ const ProductPage = () => {
                                     optionLabel="nameMaterial"
                                     optionValue="id"
                                     onChange={(event) => setRowData(event.target.value, "materialId")}
+                                    className={classNames({ 'p-invalid': errors.field === 'materialId' })}
                                 />
                             </div>
                             <div className="field">
@@ -349,6 +421,7 @@ const ProductPage = () => {
                                 <InputNumber
                                     value={product.height}
                                     onChange={(event) => setRowData(event.value, "height")}
+                                    className={classNames({ 'p-invalid': errors.field === 'height' })}
                                 />
                             </div>
                             <div className="field">
@@ -356,6 +429,7 @@ const ProductPage = () => {
                                 <InputNumber
                                     value={product.length}
                                     onChange={(event) => setRowData(event.value, "length")}
+                                    className={classNames({ 'p-invalid': errors.field === 'length' })}
                                 />
                             </div>
                             <div className="field">
@@ -363,6 +437,7 @@ const ProductPage = () => {
                                 <InputNumber
                                     value={product.weight}
                                     onChange={(event) => setRowData(event.value, "weight")}
+                                    className={classNames({ 'p-invalid': errors.field === 'weight' })}
                                 />
                             </div>
                             <div className="field">
@@ -370,11 +445,12 @@ const ProductPage = () => {
                                 <InputNumber
                                     value={product.width}
                                     onChange={(event) => setRowData(event.value, "width")}
+                                    className={classNames({ 'p-invalid': errors.field === 'width' })}
                                 />
                             </div>
                             <div className='flex align-items-center justify-content-center'>
                                 <Button label="Hủy" type='reset' icon="pi pi-times" text onClick={hideDialog} />
-                                <Button label="Lưu" icon="pi pi-check" loading={loading} onClick={() => onSubmit()} />
+                                <Button label="Lưu" icon="pi pi-check" loading={loading} />
                             </div>
                         </form>
                     </Dialog>
