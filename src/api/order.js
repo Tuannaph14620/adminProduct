@@ -32,3 +32,7 @@ export const changeStatus = (status) => {
     const url = `/api/v1/admin/order/change-status`
     return instance.post(url, status)
 }
+export const changeInfoCustomer = (info) => {
+    const url = `/api/v1/admin/order/updateOrder`
+    return instance.post(url, info)
+}

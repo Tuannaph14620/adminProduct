@@ -65,7 +65,7 @@ const OrderVerifyPage = () => {
             <h4 className="m-0">Đơn hàng đã xác nhận</h4>
             <span className="block mt-2 md:mt-0 p-input-icon-left">
                 <i className="pi pi-search" />
-                <InputText type="search" onChange={(e) => setGlobalFilter(e.target.value)} placeholder="Tìm kiếm" />
+                {/* <InputText type="search" onChange={(e) => setGlobalFilter(e.target.value)} placeholder="Tìm kiếm" /> */}
                 <React.Fragment>
                     <Button label="Export" icon="pi pi-upload" severity="help" onClick={exportCSV} />
                 </React.Fragment>

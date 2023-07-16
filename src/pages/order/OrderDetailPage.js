@@ -6,6 +6,7 @@ import { Toast } from 'primereact/toast';
 import { changeStatus, listOneOrder } from '../../api/order';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Accordion, AccordionTab } from 'primereact/accordion';
+import { Timeline } from 'primereact/timeline';
 import { Card } from 'primereact/card';
 import { Dialog } from 'primereact/dialog';
 
@@ -15,6 +16,7 @@ const OrderDetailPage = () => {
     const [valueStatus, setValueStatus] = useState({ status: '', value: '' })
     const [selectedProducts, setSelectedProducts] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [historyOrder, setHistoryOrder] = useState(false);
     const toast = useRef(null);
     const navigator = useNavigate();
     const dt = useRef(null);
@@ -79,7 +81,10 @@ const OrderDetailPage = () => {
                         <p>Trạng thái đơn hàng: {orders?.statusValue}</p>
                         <p>Trạng thái thanh toán: {orders?.payed === true ? 'Đã thanh toán' : 'Chưa thanh toán'}</p>
                     </Card>
-                    <Accordion activeIndex={0}>
+                    <Accordion>
+                        <AccordionTab header="Lịch sử đơn hàng">
+                            <Timeline value={orders?.historyOrders} opposite={(item) => item.message} content={(item) => <small className="text-color-secondary">{item.date}</small>} />
+                        </AccordionTab>
                         <AccordionTab header="Thông tin người nhận">
                             <p>Tên người nhận: {orders?.customerInfo.nameOfRecipient}</p>
                             <p>Email: {orders?.email}</p>
@@ -116,6 +121,11 @@ const OrderDetailPage = () => {
                             <span>
                                 {`Bạn có chắc chắn muốn ${valueStatus?.status == 'ACCEPT' ? 'duyệt' : valueStatus?.status == 'SHIPPING' ? 'giao' : valueStatus?.status == 'REJECT' ? 'hủy' : ''}  đơn ${orders?.orderCode} không ?`}
                             </span>
+                        </div>
+                    </Dialog>
+                    <Dialog header="Lịch sử đơn hàng" visible={historyOrder} style={{ width: '500px' }} onHide={() => setHistoryOrder(false)}>
+                        <div className="card">
+                            <Timeline value={orders?.historyOrders} opposite={(item) => item.message} content={(item) => <small className="text-color-secondary">{item.date}</small>} />
                         </div>
                     </Dialog>
                     <Card className='flex justify-content-end' style={{ paddingRight: '300px' }}>

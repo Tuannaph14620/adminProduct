@@ -16,6 +16,7 @@ import OrderPage from './pages/order/OrderPage';
 import OrderManager from './pages/order/OrderManager';
 import OrderDetailPage from './pages/order/OrderDetailPage';
 import ShopPage from './pages/shop/shopPage';
+import OrderDetailPendingPage from './pages/order/OrderDetailPendingPage';
 
 
 function App() {
@@ -36,6 +37,7 @@ function App() {
           <Route path='users' element={<UserPage />}></Route>
           <Route path='orders' element={<OrderManager />}></Route>
           <Route path='orders/:id' element={<OrderDetailPage />}></Route>
+          <Route path='orders/pending/:id' element={<OrderDetailPendingPage />}></Route>
           <Route path='shop' element={<ShopPage />}></Route>
         </Route>
       </Routes>

@@ -13,15 +13,12 @@ import {
 } from "firebase/storage";
 import { storage } from '../api/fisebase';
 import { v4 } from "uuid";
-import { useEffect } from 'react';
 function TemplateDemo(props) {
     const toast = useRef(null);
+    const errorImage = props.validate
     const [totalSize, setTotalSize] = useState(0);
     const fileUploadRef = useRef(null);
-    const [imageUpload, setImageUpload] = useState(null);
     const [imageUrls, setImageUrls] = useState([]);
-    const imagesListRef = ref(storage, "images/");
-
     const onTemplateSelect = (e) => {
         let _totalSize = totalSize;
         let files = e.files;
@@ -70,7 +67,7 @@ function TemplateDemo(props) {
         );
     };
 
-    const itemTemplate = (file, props) => {
+    const itemTemplate = (file, d) => {
 
         return (
             <div className="flex align-items-center flex-wrap">
@@ -81,8 +78,7 @@ function TemplateDemo(props) {
                         <small>{new Date().toLocaleDateString()}</small>
                     </span>
                 </div>
-                <Tag value={props.formatSize} severity="warning" className="px-3 py-2" />
-                <Button type="button" icon="pi pi-times" className="ml-auto" rounded text severity="danger" onClick={() => onTemplateRemove(file, props.onRemove)} />
+                <Button type="button" icon="pi pi-times" className="ml-auto" rounded text severity="danger" onClick={() => onTemplateRemove(file, d.onRemove)} />
             </div>
         );
     };
@@ -95,7 +91,7 @@ function TemplateDemo(props) {
         );
     };
 
-    const chooseOptions = { icon: 'pi pi-fw pi-images', iconOnly: true, className: 'custom-choose-btn p-button-rounded p-button-outlined' };
+    const chooseOptions = { icon: 'pi pi-fw pi-images', iconOnly: true, className: 'p-3 border-circle-top border-circle-bottom' };
 
 
     const uploadFile = (event) => {
@@ -112,12 +108,8 @@ function TemplateDemo(props) {
     return (
         <div>
             <Toast ref={toast}></Toast>
-
-            <Tooltip target=".custom-choose-btn" content="Choose" position="bottom" />
-            <Tooltip target=".custom-upload-btn" content="Upload" position="bottom" />
-            <Tooltip target=".custom-cancel-btn" content="Clear" position="bottom" />
-
-            <FileUpload ref={fileUploadRef} url={'upload'} accept="image/*" maxFileSize={2000000}
+            <Tooltip target=".custom-choose-btn" content="Thêm ảnh" position="bottom" />
+            <FileUpload className={errorImage == 'error' ? 'bg-red-500' : ''} ref={fileUploadRef} url={'upload'} accept="image/*" maxFileSize={2000000}
                 customUpload uploadHandler={uploadFile} auto
                 onUpload={onTemplateUpload} onSelect={onTemplateSelect} onError={onTemplateClear} onClear={onTemplateClear}
                 headerTemplate={headerTemplate} itemTemplate={itemTemplate} emptyTemplate={emptyTemplate}

@@ -98,7 +98,7 @@ const OrderPendingPage = () => {
     const actionBodyTemplate = (rowData) => {
         return (
             <>
-                <Button icon="pi pi-eye" severity="secondary" rounded className="mr-2" onClick={() => navigator(`/orders/${rowData?.orderId}`)} />
+                <Button icon="pi pi-eye" severity="secondary" rounded className="mr-2" onClick={() => navigator(`/orders/pending/${rowData?.orderId}`)} />
             </>
         );
     };

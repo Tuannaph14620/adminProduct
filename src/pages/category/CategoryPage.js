@@ -11,6 +11,7 @@ import { Toolbar } from 'primereact/toolbar';
 import { addCate, listCate, removeCate, updateCate } from '../../api/category';
 import { Image } from 'primereact/image';
 import TemplateDemo from '../../component/FileUpload';
+import { classNames } from 'primereact/utils';
 const CategoryPage = () => {
     let emptyProduct = {
         id: null,
@@ -20,6 +21,8 @@ const CategoryPage = () => {
     };
     const [categorys, setCategorys] = useState(null);
     const [productDialog, setProductDialog] = useState(false);
+    const [errors, setErrors] = useState({ field: "" });
+    const [validateImage, setValidateImage] = useState(null);
     const [deleteProductDialog, setDeleteProductDialog] = useState(false);
     const [deleteProductsDialog, setDeleteProductsDialog] = useState(false);
     const [category, setCategory] = useState(emptyProduct);
@@ -59,20 +62,25 @@ const CategoryPage = () => {
 
     const onSubmit = () => {
         setLoading(true);
+        if (!validate()) {
+            setLoading(false);
+            return;
+        }
+        setErrors({ field: '' })
         if (editCate) {
             updateCate(category).then((res) => {
                 searchAll();
                 setLoading(false);
                 setCategory(emptyProduct)
                 setProductDialog(false)
-                toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Sửa thành công', life: 1000 });
+                toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Sửa thành công', life: 3000 });
             })
         } else {
             addCate(category).then((res) => {
                 searchAll();
                 setLoading(false);
                 setProductDialog(false)
-                toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Thêm thành công', life: 1000 });
+                toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Thêm thành công', life: 3000 });
             })
         }
 
@@ -84,7 +92,8 @@ const CategoryPage = () => {
     };
 
     const hideDialog = () => {
-        setCategory(emptyProduct)
+        setCategory(emptyProduct);
+        setErrors({ field: "" });
         setProductDialog(false);
         setEditCate(false)
     };
@@ -202,10 +211,35 @@ const CategoryPage = () => {
             <Button label="Yes" icon="pi pi-check" text onClick={deleteSelectedProducts} />
         </>
     );
+    const validate = () => {
+        const _dataTable = { ...category };
+        const _error = { ...errors };
+        if (!_dataTable.name) {
+            _error.field = 'name';
+            toast.current.show({ severity: 'warn', summary: 'Cảnh báo', detail: 'Vui lòng nhập tên danh mục', life: 3000 });
+            setErrors(_error);
+            return false;
+        }
+        if (!_dataTable.image) {
+            _error.field = 'image';
+            setValidateImage("error")
+            toast.current.show({ severity: 'warn', summary: 'Cảnh báo', detail: 'Vui lòng nhập hình ảnh danh mục', life: 3000 });
+            setErrors(_error);
+            return false;
+        }
+        if (!_dataTable.des) {
+            _error.field = "des";
+            toast.current.show({ severity: 'warn', summary: 'Cảnh báo', detail: 'Vui lòng nhập mô tả', life: 3000 });
+            setErrors(_error);
+            return false;
+        }
+        return true;
+    }
     const setRowData = (value, field) => {
         const table = { ...category };
         switch (field) {
             default: {
+                setErrors({ field: "" });
                 table[field] = value;
             }
         }
@@ -213,6 +247,9 @@ const CategoryPage = () => {
     };
 
     const callbackFunction = (childData) => {
+        if (childData) {
+            setValidateImage(null)
+        }
         const _image = { ...category }
         _image.image = childData
         setCategory(_image)
@@ -251,32 +288,36 @@ const CategoryPage = () => {
                     </DataTable>
 
                     <Dialog visible={productDialog} style={{ width: '600px' }} header={editCate ? "Sửa danh mục sản phẩm" : "Thêm mới danh mục sản phẩm"} modal className="p-fluid" onHide={hideDialog}>
-                        <form >
-                            <div className="field">
-                                <label htmlFor="name">Tên danh mục</label>
-                                <InputText
-                                    value={category.name}
-                                    onChange={(event) => setRowData(event.target.value, "name")}
-                                    id="name" />
-                            </div>
-                            <div className="field ">
-                                <label htmlFor="image">Ảnh danh mục</label>
-                                <TemplateDemo parentCallback={callbackFunction}></TemplateDemo>
-                                <Image hidden={!editCate} src={category?.image} alt="Image" width="100" />
-                            </div>
-                            <div className="field">
-                                <label htmlFor="description">Mô tả</label>
-                                <InputTextarea
-                                    onChange={(event) => setRowData(event.target.value, "des")}
-                                    value={category.des}
-                                    id="des"
-                                    rows={3} cols={20} />
-                            </div>
-                            <div className='flex align-items-center justify-content-center'>
-                                <Button label="Cancel" type='reset' icon="pi pi-times" text onClick={hideDialog} />
-                                <Button label="Save" type='submit' icon="pi pi-check" loading={loading} onClick={() => onSubmit()} />
-                            </div>
-                        </form>
+                        <div className="field">
+                            <label htmlFor="name">Tên danh mục</label>
+                            <InputText
+                                value={category.name}
+                                onChange={(event) => setRowData(event.target.value, "name")}
+                                className={classNames({
+                                    "p-invalid": errors.field === 'name'
+                                })}
+                                id="name" />
+                        </div>
+                        <div className="field ">
+                            <label htmlFor="image">Ảnh danh mục</label>
+                            <TemplateDemo parentCallback={callbackFunction} validate={validateImage}></TemplateDemo>
+                            <Image hidden={!editCate} src={category?.image} alt="Image" width="100" />
+                        </div>
+                        <div className="field">
+                            <label htmlFor="description">Mô tả</label>
+                            <InputTextarea
+                                onChange={(event) => setRowData(event.target.value, "des")}
+                                value={category.des}
+                                id="des"
+                                className={classNames({
+                                    "p-invalid": errors.field === 'des'
+                                })}
+                                rows={3} cols={20} />
+                        </div>
+                        <div className='flex align-items-center justify-content-center'>
+                            <Button label="Cancel" type='reset' icon="pi pi-times" text onClick={hideDialog} />
+                            <Button label="Save" type='submit' icon="pi pi-check" loading={loading} onClick={() => onSubmit()} />
+                        </div>
                     </Dialog>
 
                     <Dialog visible={deleteProductDialog} style={{ width: '450px' }} header="Confirm" modal footer={deleteProductDialogFooter} onHide={hideDeleteProductDialog}>
