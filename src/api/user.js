@@ -20,3 +20,11 @@ export const updateCate = (user) => {
     const url = `/api/v1/admin/user/update`
     return instance.post(url, user)
 }
+export const myProfile = () => {
+    const url = `/api/v1/user/my-profile`
+    return instance.get(url)
+}
+export const updateProfile = (user) => {
+    const url = `/api/v1/user/update-profile`
+    return instance.post(url, user)
+}

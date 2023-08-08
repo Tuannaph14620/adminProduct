@@ -17,6 +17,7 @@ import OrderManager from './pages/order/OrderManager';
 import OrderDetailPage from './pages/order/OrderDetailPage';
 import ShopPage from './pages/shop/shopPage';
 import OrderDetailPendingPage from './pages/order/OrderDetailPendingPage';
+import DashBoardPage from './pages/dashboard/DashBoardPage';
 
 
 function App() {
@@ -26,7 +27,7 @@ function App() {
         <Route path='signin' element={<SignIn />} />
         <Route path='/' element={<PrivateRouter><AdminLayout /></PrivateRouter>}>
           <Route index element={<Navigate to="dashboard" />} />
-          <Route path='dashboard' />
+          <Route path='dashboard' element={<DashBoardPage />} />
           <Route path='products' element={<ProductPage />}></Route>
           <Route path='products/:id' element={<DeatailProductPage />}></Route>
           <Route path='categorys' element={<CategoryPage />}></Route>
