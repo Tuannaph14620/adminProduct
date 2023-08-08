@@ -37,13 +37,14 @@ const OrderPage = () => {
         payed: null,
         startDate: null,
         endDate: null,
+        orderType: null
     };
     const [filterData, setFilterData] = useState(defaultData);
     const toast = useRef(null);
     const dt = useRef(null);
     useEffect(() => {
         searchAll();
-    }, [filterData.payed, filterData.startDate, filterData.endDate]);
+    }, [filterData.payed, filterData.startDate, filterData.endDate, filterData.orderType]);
 
     const searchAll = () => {
         setLoading(true);
@@ -53,6 +54,7 @@ const OrderPage = () => {
                 orderCode: "",
                 email: "",
                 phoneNumber: "",
+                orderType: filterData.orderType,
                 payed: filterData.payed,
                 startDate: filterData.startDate,
                 endDate: filterData.endDate,
@@ -212,6 +214,32 @@ const OrderPage = () => {
                                             checked={filterData.payed === null}
                                         />
                                         <label className='ml-2' htmlFor="city1">Tất cả</label>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="grid formgrid p-fluid fluid mb-2">
+                            <div className="col-12 flex gap-8 align-items-center">
+                                <div >
+                                    <span className="">
+                                        <RadioButton
+                                            inputId="city2"
+                                            name="city2"
+                                            onChange={() => setFilter("orderType", 'OFFLINE')}
+                                            checked={filterData.orderType === 'OFFLINE'}
+                                        />
+                                        <label className='ml-2' htmlFor="city2">OFFLINE</label>
+                                    </span>
+                                </div>
+                                <div >
+                                    <span className="">
+                                        <RadioButton
+                                            inputId="city2"
+                                            name="city2"
+                                            onChange={() => setFilter("orderType", 'ONLINE')}
+                                            checked={filterData.orderType === 'ONLINE'}
+                                        />
+                                        <label className='ml-2' htmlFor="city2">ONLINE</label>
                                     </span>
                                 </div>
                             </div>
