@@ -30,6 +30,7 @@ const ShopPage = () => {
     }
     const [product, setProduct] = useState(null)
     const navigate = useNavigate();
+    const [quantityProduct, setQuantityProduct] = useState(false)
     const [productSelected, setProductSelected] = useState([])
     const [deleteProductDialog, setDeleteProductDialog] = useState(false);
     const [order, setOrder] = useState(emptyProduct);
@@ -88,15 +89,18 @@ const ShopPage = () => {
             setLoading(false);
             return;
         } else if (orderAdd.productOrderRequest.length == 0) {
-            toast.current.show({ severity: 'warn', summary: 'Cảnh báo', detail: 'Vui lòng chọn sản phẩn muốn bán', life: 1000 });
+            toast.current.show({ severity: 'warn', summary: 'Cảnh báo', detail: 'Vui lòng chọn sản phẩn muốn bán', life: 2000 });
+            return;
+        } else if (quantityProduct) {
+            toast.current.show({ severity: 'warn', summary: 'Cảnh báo', detail: 'Số lượng đơn hàng không hợp lệ', life: 2000 });
             return;
         }
         setError({ field: '' });
         addOrder(orderAdd).then((res) => {
             if (res) {
                 setLoading(false);
-                toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Thêm thành công', life: 1000 });
-                navigate('/orders')
+                toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Thêm thành công', life: 3000 });
+                navigate(`/orders/${res?.data.data}`)
             }
 
         })
@@ -108,7 +112,7 @@ const ShopPage = () => {
                 "search": "",
                 "pageReq": {
                     "page": 0,
-                    "pageSize": 15,
+                    "pageSize": 100,
                     "sortField": "",
                     "sortDirection": ""
                 }
@@ -118,7 +122,8 @@ const ShopPage = () => {
                 return {
                     ...e,
                     id: e.id,
-                    productName: e.productName + '-' + e.sizeName + '-' + e.colorName
+                    productName: e.productName + '-' + e.sizeName + '-' + e.colorName,
+                    productNameQTY: e.productName + '-' + e.sizeName + '-' + e.colorName + '-' + e.qty
                 }
             })
             setProduct(_data);
@@ -130,7 +135,7 @@ const ShopPage = () => {
                 textSearch: "",
                 pageReq: {
                     page: 0,
-                    pageSize: 15,
+                    pageSize: 100,
                     sortField: "",
                     sortDirection: ""
                 }
@@ -142,7 +147,6 @@ const ShopPage = () => {
     }
 
     const hideDeleteProductDialog = () => {
-        console.log(checkRemoveOrder);
         const index = checkRemoveOrder.rowIndex;
         const table = [...productSelected];
         const row = { ...table[index] };
@@ -178,7 +182,7 @@ const ShopPage = () => {
                     showClear
                     disabled={vouchersChecked}
                     filter
-                    optionLabel="productName"
+                    optionLabel="productNameQTY"
                     optionValue="id"
                     onChange={(event) => { setProductOrder(event.target.value) }}
                 />
@@ -229,7 +233,6 @@ const ShopPage = () => {
         } else {
             chechPriductExist.quantity += a.quantity
         }
-
         setProductSelected(table);
     };
 
@@ -288,6 +291,13 @@ const ShopPage = () => {
                                     if (e.value === 0) {
                                         confirmDeleteProduct(d)
                                         setCheckRemoveOrder(index)
+                                    } else {
+                                        if (e.value > d.qty) {
+                                            setQuantityProduct(true)
+                                            toast.current.show({ severity: 'warn', summary: 'Cảnh báo', detail: 'Số lượng đơn hàng không hợp lệ', life: 3000 });
+                                        } else {
+                                            setQuantityProduct(false)
+                                        }
                                     }
                                     setRowProductOrder(e.value, 'quantity', index)
                                 }}
