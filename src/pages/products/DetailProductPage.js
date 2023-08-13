@@ -62,17 +62,11 @@ const DeatailProductPage = (props) => {
                 }
             }
         ).then((res) => {
-            // const _paginator = { ...paginator };
-            // _paginator.total = res.total;
-            // setPaginator(_paginator);
             const _data = res?.data.data
             setProducts(_data);
             setLoading(false);
         });
         listOneProduct(id).then((res) => {
-            // const _paginator = { ...paginator };
-            // _paginator.total = res.total;
-            // setPaginator(_paginator);
             const _data = res?.data.data
             setProductDetail(_data);
             setLoading(false);
