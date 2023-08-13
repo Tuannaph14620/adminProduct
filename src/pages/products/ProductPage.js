@@ -56,7 +56,7 @@ const ProductPage = () => {
                 "maxPrice": "",
                 "pageReq": {
                     "page": 0,
-                    "pageSize": 15,
+                    "pageSize": 100,
                     "sortField": "",
                     "sortDirection": ""
                 }

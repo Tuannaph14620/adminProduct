@@ -56,7 +56,7 @@ const DeatailProductPage = (props) => {
                 active: true,
                 pageReq: {
                     page: 0,
-                    pageSize: 10,
+                    pageSize: 100,
                     sortField: "",
                     sortDirection: ""
                 }

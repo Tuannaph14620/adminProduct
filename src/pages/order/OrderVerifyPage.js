@@ -33,7 +33,7 @@ const OrderVerifyPage = () => {
                 endDate: "",
                 pageReq: {
                     page: 0,
-                    pageSize: 15,
+                    pageSize: 100,
                     sortField: "createdDate",
                     sortDirection: "desc"
                 }
