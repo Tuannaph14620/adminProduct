@@ -119,7 +119,7 @@ const OrderDetailPage = () => {
                         <div className="flex align-items-center justify-content-center">
                             <i className="pi pi-exclamation-triangle mr-3" style={{ fontSize: '2rem' }} />
                             <span>
-                                {`Bạn có chắc chắn muốn ${valueStatus?.status == 'ACCEPT' ? 'duyệt' : valueStatus?.status == 'SHIPPING' ? 'giao' : valueStatus?.status == 'REJECT' ? 'hủy' : ''}  đơn ${orders?.orderCode} không ?`}
+                                {`Bạn có chắc chắn muốn ${valueStatus?.status == 'ACCEPT' ? 'duyệt' : valueStatus?.status == 'SHIPPING' ? 'giao' : valueStatus?.status == 'REJECT' ? 'hủy' : valueStatus?.status == 'COMPLETE' ? 'hoàn thành' : valueStatus?.status == 'UNRECEIVED' ? 'hủy' : ''}  đơn ${orders?.orderCode} không ?`}
                             </span>
                         </div>
                     </Dialog>
@@ -141,27 +141,26 @@ const OrderDetailPage = () => {
                                 onClick={() => {
                                     if (orders?.status == 'PENDING') {
                                         confirmDeleteProduct('ACCEPT', 'đã duyệt')
-                                        //onChange('ACCEPT', 'đã duyệt')
                                     } else if (orders?.status == 'ACCEPT') {
                                         confirmDeleteProduct('SHIPPING', 'đã gửi hàng')
-                                        //onChange('SHIPPING', 'đã gửi hàng')
+                                    } else if (orders?.status == 'SHIPPING') {
+                                        confirmDeleteProduct('COMPLETE', 'hoàn thành')
                                     }
                                 }}
                                 severity="success" label={
-                                    orders?.status == 'PENDING' ? 'Duyệt đơn' : orders?.status == 'ACCEPT' ? 'Giao hàng' : 'Đa'
+                                    orders?.status == 'PENDING' ? 'Duyệt đơn' : orders?.status == 'ACCEPT' ? 'Giao hàng' : orders?.status == 'SHIPPING' ? 'Hoàn thành' : ''
                                 } icon="pi pi-check" />
                             <Button
                                 style={{ display: orders?.status == 'REJECT' || orders?.status == 'CANCEL' || orders?.status == 'UNRECEIVED' || orders?.status == 'COMPLETE' ? 'none' : 'block' }}
                                 onClick={() => {
                                     if (orders?.status == 'PENDING' || orders?.status == 'ACCEPT') {
                                         confirmDeleteProduct('REJECT', 'đã hủy')
-                                        // onChange('REJECT', 'đã hủy')
                                     }
-                                    // else if (orders?.status == 'ACCEPT') {
-                                    //     onChange('SHIPPING', 'đã gửi hàng')
-                                    // }
+                                    else if (orders?.status == 'SHIPPING') {
+                                        confirmDeleteProduct('UNRECEIVED', 'giao hàng thất bại')
+                                    }
                                 }}
-                                severity="danger" label="Hủy đơn" icon="pi pi-times"
+                                severity="danger" label={orders?.status == 'SHIPPING' ? 'Giao hàng thất bại' : 'Hủy đơn'} icon="pi pi-times"
                                 className="p-button-outlined p-button-secondary" />
                         </div>
                     </Card>

@@ -10,6 +10,7 @@ import { Dialog } from 'primereact/dialog';
 import { classNames } from 'primereact/utils';
 import { Calendar } from 'primereact/calendar';
 import { Toast } from 'primereact/toast';
+import { RadioButton } from 'primereact/radiobutton';
 const HeaderIndex = () => {
   const navigate = useNavigate();
   const toast = useRef(null);
@@ -58,14 +59,12 @@ const HeaderIndex = () => {
     },
     {
       label: 'Sản phẩm',
-      icon: 'pi pi-book',
       command: (event) => {
         navigate('/products')
       },
     },
     {
       label: 'Danh mục sản phẩm',
-      icon: 'pi pi-book',
       command: (event) => {
         navigate('/categorys')
       },
@@ -78,7 +77,6 @@ const HeaderIndex = () => {
     },
     {
       label: 'Thuộc tính',
-      icon: 'pi pi-fw pi-pencil',
       items: [
         {
           label: 'Màu sắc',
@@ -142,7 +140,7 @@ const HeaderIndex = () => {
     }
   ]
   // const nameAvatar = () => {
-  //   const _nameAvatar = profileOb?.fullName.split(' ')
+  //   const _nameAvatar = profileOb?.firstName.split(' ')
   //   const confirmName = `${_nameAvatar[0] ? _nameAvatar[0].toString?.charAt(0) : ''}${_nameAvatar[1] ? _nameAvatar[1]?.charAt(0) : ''}`
   //   console.log(confirmName);
   //   return confirmName
@@ -154,9 +152,15 @@ const HeaderIndex = () => {
   const validate = () => {
     const _dataTable = { ...profileOb };
     const _error = { ...errors };
-    if (!_dataTable.fullName) {
-      _error.field = 'fullName';
-      toast.current.show({ severity: 'warn', summary: 'Cảnh báo', detail: 'Vui lòng nhập tên danh mục', life: 3000 });
+    if (!_dataTable.firstName) {
+      _error.field = 'firstName';
+      toast.current.show({ severity: 'warn', summary: 'Cảnh báo', detail: 'Vui lòng nhập tên người dùng', life: 3000 });
+      setErrors(_error);
+      return false;
+    }
+    if (!_dataTable.lastName) {
+      _error.field = 'lastName';
+      toast.current.show({ severity: 'warn', summary: 'Cảnh báo', detail: 'Vui lòng nhập họ người dùng', life: 3000 });
       setErrors(_error);
       return false;
     }
@@ -195,15 +199,26 @@ const HeaderIndex = () => {
         searchAll();
       }}>
         <div className="field">
-          <label className='mr-2' htmlFor="fullName">Tên người dùng</label>
+          <label className='mr-2' htmlFor="firstName">Tên người dùng</label>
           <InputText
             disabled={!onEdit}
-            value={profileOb?.fullName}
-            onChange={(event) => setRowData(event.target.value, "fullName")}
+            value={profileOb?.firstName}
+            onChange={(event) => setRowData(event.target.value, "firstName")}
             className={classNames({
-              "p-invalid": errors.field === 'fullName'
+              "p-invalid": errors.field === 'firstName'
             })}
-            id="fullName" />
+            id="firstName" />
+        </div>
+        <div className="field">
+          <label className='mr-2' htmlFor="lastName">Họ đệm người dùng</label>
+          <InputText
+            disabled={!onEdit}
+            value={profileOb?.lastName}
+            onChange={(event) => setRowData(event.target.value, "lastName")}
+            className={classNames({
+              "p-invalid": errors.field === 'lastName'
+            })}
+            id="lastName" />
         </div>
         <div className="field">
           <label className='mr-2' htmlFor="email">Email</label>
@@ -227,8 +242,38 @@ const HeaderIndex = () => {
             })}
             id="phone" />
         </div>
+        <div className="grid formgrid p-fluid fluid mb-2">
+          <div className="col-12 flex gap-8 align-items-center">
+            <div >
+              <span className="">
+                <RadioButton
+                  inputId="city1"
+                  name="city"
+                  disabled={!onEdit}
+                  onChange={() => setRowData(true, "gender")}
+                  checked={profileOb?.gender === true}
+                  className={classNames({ 'p-invalid': errors.field === 'gender' })}
+                />
+                <label className='ml-2' htmlFor="city1">Nữ</label>
+              </span>
+            </div>
+            <div >
+              <span className="">
+                <RadioButton
+                  inputId="city1"
+                  disabled={!onEdit}
+                  name="city"
+                  onChange={() => setRowData(false, "gender")}
+                  checked={profileOb?.gender === false}
+                  className={classNames({ 'p-invalid': errors.field === 'gender' })}
+                />
+                <label className='ml-2' htmlFor="city1">Nam</label>
+              </span>
+            </div>
+          </div>
+        </div>
         <div className="field">
-          <label htmlFor="dob">Từ ngày</label>
+          <label htmlFor="dob">Ngày sinh</label>
           <Calendar
             disabled={!onEdit}
             value={new Date(profileOb?.dob)}
