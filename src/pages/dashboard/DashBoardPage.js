@@ -124,7 +124,7 @@ const DashBoardPage = () => {
                 </div>
                 <div className="col-4">
                     <div className="card">
-                        <Card className='text-center' title='Số lương đơn hàng theo trạng thái'>
+                        <Card className='text-center' title='Số lượng đơn hàng theo trạng thái'>
                             <Chart type="pie" data={data} />
                         </Card>
 

@@ -129,12 +129,12 @@ const OrderDetailPage = () => {
                         </div>
                     </Dialog>
                     <Card className='flex justify-content-end' style={{ paddingRight: '300px' }}>
-                        <p>Tổng chi phí đơn hàng: {orders?.shopTotal}</p>
+                        <p>Tổng chi phí đơn hàng: {orders?.shopTotal?.toLocaleString('vi', { style: 'currency', currency: 'VND' })}</p>
                         <p>Voucher: {orders?.voucherCode}</p>
-                        <p>Giảm giá voucher: {orders?.voucherDiscount}</p>
-                        <p>Giảm giá: {orders?.discount}</p>
-                        <p>Phí giao hàng: {orders?.shipPrice}</p>
-                        <p className='font-bold'>Thanh toán: {orders?.total}</p>
+                        <p>Giảm giá voucher: {orders?.voucherDiscount?.toLocaleString('vi', { style: 'currency', currency: 'VND' })}</p>
+                        <p>Giảm giá: {orders?.discount?.toLocaleString('vi', { style: 'currency', currency: 'VND' })}</p>
+                        <p>Phí giao hàng: {orders?.shipPrice?.toLocaleString('vi', { style: 'currency', currency: 'VND' })}</p>
+                        <p className='font-bold'>Thanh toán: {orders?.total?.toLocaleString('vi', { style: 'currency', currency: 'VND' })}</p>
                         <div className="flex flex-wrap gap-4">
                             <Button
                                 style={{ display: orders?.status == 'REJECT' || orders?.status == 'CANCEL' || orders?.status == 'UNRECEIVED' || orders?.status == 'COMPLETE' ? 'none' : 'block' }}

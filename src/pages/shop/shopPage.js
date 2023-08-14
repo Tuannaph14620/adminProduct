@@ -210,10 +210,10 @@ const ShopPage = () => {
                     table.voucherCode = null;
                     table.discountPrice = "0"
                 } else {
-                    table.voucherCode = value?.voucherCode;
+                    table[field] = value?.voucherCode;
                     table.discountPrice = value?.voucherDiscount.toString()
                 }
-
+                break;
             default: {
                 setError({ field: '' });
                 table[field] = value;
@@ -373,7 +373,7 @@ const ShopPage = () => {
                     <div className="field">
                         <label htmlFor="voucherCode">Voucher</label>
                         <Dropdown
-                            value={order?.voucherCode?.voucherCode}
+                            value={order?.voucherCode}
                             options={vouchers}
                             showClear
                             filter
