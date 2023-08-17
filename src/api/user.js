@@ -13,12 +13,12 @@ export const addUser = (user) => {
     return instance.post(url, user)
 }
 export const removeCate = (id) => {
-    const url = `/api/v1/admin/user/delete`
-    return instance.post(url, id)
+    const url = `/api/v1/admin/user/delete/${id}`
+    return instance.get(url)
 }
-export const updateCate = (user) => {
-    const url = `/api/v1/admin/user/update`
-    return instance.post(url, user)
+export const activeUser = (id, e) => {
+    const url = `/api/v1/admin/user/active/${id}?active=${e}`
+    return instance.get(url)
 }
 export const myProfile = () => {
     const url = `/api/v1/user/my-profile`

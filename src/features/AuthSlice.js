@@ -22,7 +22,7 @@ export const Login = createAsyncThunk(
             return data
 
         } catch (error) {
-            const notify = () => toast("Sai mật khẩu hoặc tài khoảng!")
+            const notify = () => toast("Sai mật khẩu hoặc tài khoản!")
             notify()
         }
 

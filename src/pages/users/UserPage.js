@@ -3,11 +3,11 @@ import { Button } from 'primereact/button';
 import { Column } from 'primereact/column';
 import { DataTable } from 'primereact/datatable';
 import { Dialog } from 'primereact/dialog';
-import { FileUpload } from 'primereact/fileupload';
 import { InputText } from 'primereact/inputtext';
 import { Toast } from 'primereact/toast';
+import { ToggleButton } from 'primereact/togglebutton';
 import { Toolbar } from 'primereact/toolbar';
-import { addUser, listUser, removeCate, updateCate } from '../../api/user';
+import { activeUser, addUser, listUser, removeCate } from '../../api/user';
 import { RadioButton } from 'primereact/radiobutton';
 import moment from 'moment';
 import { Calendar } from 'primereact/calendar';
@@ -22,7 +22,8 @@ const UserPage = () => {
         phone: null,
         role: "ROLE_CUSTOMER",
         gender: null,
-        dob: null
+        dob: null,
+        active: null
     };
     const [users, setUsers] = useState(null);
     const [productDialog, setProductDialog] = useState(false);
@@ -34,6 +35,7 @@ const UserPage = () => {
     const [selectedProducts, setSelectedProducts] = useState(null);
     const [globalFilter, setGlobalFilter] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [checked, setChecked] = useState(false);
     const toast = useRef(null);
     const dt = useRef(null);
     useEffect(() => {
@@ -50,8 +52,8 @@ const UserPage = () => {
                 pageReq: {
                     page: 0,
                     pageSize: 100,
-                    sortField: "createdDate",
-                    sortDirection: "desc"
+                    sortField: "",
+                    sortDirection: ""
                 }
             }
         ).then((res) => {
@@ -69,23 +71,12 @@ const UserPage = () => {
             return;
         }
         setErrors({ field: '' })
-        if (statusEdit) {
-            updateCate(user).then((res) => {
-                searchAll();
-                setLoading(false);
-                setUser(emptyProduct)
-                setProductDialog(false)
-                toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Sửa thành công', life: 1000 });
-            })
-        } else {
-            addUser(user).then((res) => {
-                searchAll();
-                setLoading(false);
-                setProductDialog(false)
-                toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Thêm thành công', life: 1000 });
-            })
-        }
-
+        addUser(user).then((res) => {
+            searchAll();
+            setLoading(false);
+            setProductDialog(false)
+            toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Thêm thành công', life: 1000 });
+        })
     }
 
     const openNew = () => {
@@ -128,11 +119,10 @@ const UserPage = () => {
     };
 
     const deleteProduct = () => {
-        const ids = user
+        const ids = user.id
         removeCate(ids).then((res) => {
             if (res) {
                 searchAll();
-                // onChangeSelectedRows([]);
                 setDeleteProductDialog(false);
                 toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Xóa thành công', life: 1000 });
             }
@@ -175,7 +165,6 @@ const UserPage = () => {
     const actionBodyTemplate = (rowData) => {
         return (
             <>
-                <Button icon="pi pi-pencil" severity="success" rounded className="mr-2" onClick={() => editProduct(rowData)} />
                 <Button icon="pi pi-trash" severity="warning" rounded onClick={() => confirmDeleteProduct(rowData)} />
             </>
         );
@@ -192,8 +181,8 @@ const UserPage = () => {
     );
     const deleteProductDialogFooter = (
         <>
-            <Button label="No" icon="pi pi-times" text onClick={hideDeleteProductDialog} />
-            <Button label="Yes" icon="pi pi-check" text onClick={deleteProduct} />
+            <Button label="Không" icon="pi pi-times" text onClick={hideDeleteProductDialog} />
+            <Button label="Có" icon="pi pi-check" text onClick={deleteProduct} />
         </>
     );
     const deleteProductsDialogFooter = (
@@ -253,6 +242,15 @@ const UserPage = () => {
         }
         setUser(table);
     };
+    const activeUserFunction = (e, id) => {
+        activeUser(id?.id, e.value).then((res) => {
+            if (res) {
+                searchAll();
+                setLoading(false);
+                toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Chuyển trạng thái thành công', life: 1000 });
+            }
+        })
+    }
 
     return (
         <div className="grid crud-demo">
@@ -265,7 +263,6 @@ const UserPage = () => {
                         ref={dt}
                         value={users}
                         selection={selectedProducts}
-                        onSelectionChange={(e) => setSelectedProducts(e.value)}
                         dataKey="id"
                         paginator
                         rows={10}
@@ -279,16 +276,16 @@ const UserPage = () => {
                         loading={loading}
                         responsiveLayout="scroll"
                     >
-                        <Column selectionMode="multiple" headerStyle={{ width: '4rem' }}></Column>
                         <Column field="name" header="Họ tên" body={(d) => <span >{`${d.firstName} ${d.lastName}`}</span>} headerStyle={{ minWidth: '15rem' }}></Column>
                         <Column field="email" header="Email" body={(d) => <span >{d.email}</span>} headerStyle={{ minWidth: '15rem' }}></Column>
                         <Column field="phone" header="Số điện thoại" body={(d) => <span >{d.phone}</span>} headerStyle={{ minWidth: '15rem' }}></Column>
                         <Column field="birthday" header="Ngày sinh" body={(d) => <span >{moment(d.dob).format('D-MM-YYYY')}</span>} headerStyle={{ minWidth: '15rem' }}></Column>
                         <Column field="gender" header="Giới tính" body={(d) => <span >{d.gender ? 'Nữ' : 'Nam'}</span>} headerStyle={{ minWidth: '15rem' }}></Column>
-                        {/* <Column header="Chức năng" body={(d) => actionBodyTemplate(d)} headerStyle={{ minWidth: '10rem' }}></Column> */}
+                        <Column alignHeader={'center'} header="Hoạt động" body={(d) => <ToggleButton onLabel="Active" offLabel="Deactive" onIcon="pi pi-check" offIcon="pi pi-times"
+                            checked={d?.active} onChange={(e) => activeUserFunction(e, d)} className="w-9rem" />} headerStyle={{ minWidth: '10rem' }}></Column>
                     </DataTable>
 
-                    <Dialog visible={productDialog} style={{ width: '600px' }} header={statusEdit ? "Sửa tài khoảng" : "Thêm mới tài khoảng"} modal className="p-fluid" onHide={hideDialog}>
+                    <Dialog visible={productDialog} style={{ width: '600px' }} header={statusEdit ? "Sửa tài khoản" : "Thêm mới tài khoản"} modal className="p-fluid" onHide={hideDialog}>
                         <form onSubmit={onSubmit} >
                             <div className="field">
                                 <label htmlFor="firstName">Tên</label>
@@ -379,7 +376,7 @@ const UserPage = () => {
                             <i className="pi pi-exclamation-triangle mr-3" style={{ fontSize: '2rem' }} />
                             {user && (
                                 <span>
-                                    Are you sure you want to delete <b>{user.name}</b>?
+                                    Bạn có chắc chắn muốn xóa tài khoản <b>{user.email}</b>?
                                 </span>
                             )}
                         </div>
