@@ -199,7 +199,7 @@ const DashBoardPage = () => {
                 <div className="col-12">
                     <div className="card">
                         <Card className='text-center' title="Doanh thu Offline/Online theo từng tháng">
-                            <Chart type="bar" data={revenueYearChart} options={optionChartYear} />
+                            <Chart type="line" data={revenueYearChart} options={optionChartYear} />
                         </Card>
 
                     </div>
