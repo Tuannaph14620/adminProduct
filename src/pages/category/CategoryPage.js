@@ -156,7 +156,7 @@ const CategoryPage = () => {
         return (
             <React.Fragment>
                 <div className="my-2">
-                    <Button label="New" icon="pi pi-plus" severity="sucess" className="mr-2" onClick={openNew} />
+                    <Button label="Thêm mới" icon="pi pi-plus" severity="sucess" className="mr-2" onClick={openNew} />
                 </div>
             </React.Fragment>
         );
@@ -165,7 +165,7 @@ const CategoryPage = () => {
     const rightToolbarTemplate = () => {
         return (
             <React.Fragment>
-                <Button label="Export" icon="pi pi-upload" severity="help" onClick={exportCSV} />
+                <Button label="Xuất" icon="pi pi-upload" severity="help" onClick={exportCSV} />
             </React.Fragment>
         );
     };
@@ -190,7 +190,7 @@ const CategoryPage = () => {
 
     const header = (
         <div className="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
-            <h5 className="m-0">Danh mục sản phẩm</h5>
+            <h4 className="m-0">Danh mục sản phẩm</h4>
             <span className="block mt-2 md:mt-0 p-input-icon-left">
                 <i className="pi pi-search" />
                 <InputText type="search" onChange={(e) => setGlobalFilter(e.target.value)} placeholder="Tìm kiếm" />
@@ -199,14 +199,14 @@ const CategoryPage = () => {
     );
     const deleteProductDialogFooter = (
         <>
-            <Button label="No" icon="pi pi-times" text onClick={hideDeleteProductDialog} />
-            <Button label="Yes" icon="pi pi-check" text onClick={deleteProduct} />
+            <Button label="Không" icon="pi pi-times" text onClick={hideDeleteProductDialog} />
+            <Button label="Có" icon="pi pi-check" text onClick={deleteProduct} />
         </>
     );
     const deleteProductsDialogFooter = (
         <>
-            <Button label="No" icon="pi pi-times" text onClick={hideDeleteProductsDialog} />
-            <Button label="Yes" icon="pi pi-check" text onClick={deleteSelectedProducts} />
+            <Button label="Không" icon="pi pi-times" text onClick={hideDeleteProductsDialog} />
+            <Button label="Có" icon="pi pi-check" text onClick={deleteSelectedProducts} />
         </>
     );
     const validate = () => {
@@ -278,7 +278,6 @@ const CategoryPage = () => {
                         loading={loading}
                         responsiveLayout="scroll"
                     >
-                        <Column selectionMode="multiple" headerStyle={{ width: '4rem' }}></Column>
                         <Column field="name" header="Tên danh mục" sortable body={(d) => <span >{d.name}</span>} headerStyle={{ minWidth: '15rem' }}></Column>
                         <Column field="desc" header="Mô tả" sortable body={(d) => <span >{d.des}</span>} headerStyle={{ minWidth: '15rem' }}></Column>
                         <Column header="Ảnh" body={imageBodyTemplate}></Column>

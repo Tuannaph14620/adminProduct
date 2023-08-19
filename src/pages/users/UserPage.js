@@ -149,7 +149,7 @@ const UserPage = () => {
         return (
             <React.Fragment>
                 <div className="my-2">
-                    <Button label="New" icon="pi pi-plus" severity="sucess" className="mr-2" onClick={openNew} />
+                    <Button label="Thêm mới" icon="pi pi-plus" severity="sucess" className="mr-2" onClick={openNew} />
                 </div>
             </React.Fragment>
         );
@@ -158,7 +158,7 @@ const UserPage = () => {
     const rightToolbarTemplate = () => {
         return (
             <React.Fragment>
-                <Button label="Export" icon="pi pi-upload" severity="help" onClick={exportCSV} />
+                <Button label="Xuất" icon="pi pi-upload" severity="help" onClick={exportCSV} />
             </React.Fragment>
         );
     };
@@ -187,8 +187,8 @@ const UserPage = () => {
     );
     const deleteProductsDialogFooter = (
         <>
-            <Button label="No" icon="pi pi-times" text onClick={hideDeleteProductsDialog} />
-            <Button label="Yes" icon="pi pi-check" text onClick={deleteSelectedProducts} />
+            <Button label="Không" icon="pi pi-times" text onClick={hideDeleteProductsDialog} />
+            <Button label="Có" icon="pi pi-check" text onClick={deleteSelectedProducts} />
         </>
     );
     const validate = () => {

@@ -139,14 +139,14 @@ const HeaderIndex = () => {
       },
     }
   ]
-  // const nameAvatar = () => {
-  //   const _nameAvatar = profileOb?.firstName.split(' ')
-  //   const confirmName = `${_nameAvatar[0] ? _nameAvatar[0].toString?.charAt(0) : ''}${_nameAvatar[1] ? _nameAvatar[1]?.charAt(0) : ''}`
-  //   console.log(confirmName);
-  //   return confirmName
-  // }
-  const start = <img alt="logo" src="https://primefaces.org/cdn/primereact/images/logo.png" height="40" className="mr-2"></img>;
-  const end = <Avatar label={"TN"} shape="circle" size="large" className='m-2' style={{ backgroundColor: '#2196F3', color: '#ffffff', fontWeight: "bold" }} onClick={(event) => menuLeft.current.toggle(event)} />
+  const nameAvatar = () => {
+    const _firstName = profileOb?.firstName?.charAt(0);
+    const _lastName = profileOb?.lastName?.charAt(0);
+    const confirmName = `${_firstName ? _firstName : ''}${_lastName ? _lastName : ''}`
+    return confirmName
+  }
+  const start = <img alt="logo" src="https://firebasestorage.googleapis.com/v0/b/upload-image-d5f7e.appspot.com/o/images%2FUntitled-2.png?alt=media&token=1aa0e1e8-714f-4087-834c-118eeb91b97e" height="40" className="mr-2"></img>;
+  const end = <Avatar label={nameAvatar()} shape="circle" size="large" className='m-2' style={{ backgroundColor: '#2196F3', color: '#ffffff', fontWeight: "bold" }} onClick={(event) => menuLeft.current.toggle(event)} />
   // <Button label="Show Left" icon="pi pi-align-left" className="mr-2" onClick={(event) => menuLeft.current.toggle(event)} aria-controls="popup_menu_left" aria-haspopup />
 
   const validate = () => {

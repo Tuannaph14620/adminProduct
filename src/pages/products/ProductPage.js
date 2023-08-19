@@ -216,7 +216,7 @@ const ProductPage = () => {
         return (
             <React.Fragment>
                 <div className="my-2">
-                    <Button label="New" icon="pi pi-plus" severity="sucess" className="mr-2" onClick={openNew} />
+                    <Button label="Thêm mới" icon="pi pi-plus" severity="sucess" className="mr-2" onClick={openNew} />
                 </div>
             </React.Fragment>
         );
@@ -225,7 +225,7 @@ const ProductPage = () => {
     const rightToolbarTemplate = () => {
         return (
             <React.Fragment>
-                <Button label="Export" icon="pi pi-upload" severity="help" onClick={exportCSV} />
+                <Button label="Xuất" icon="pi pi-upload" severity="help" onClick={exportCSV} />
             </React.Fragment>
         );
     };
@@ -252,14 +252,14 @@ const ProductPage = () => {
     );
     const deleteProductDialogFooter = (
         <>
-            <Button label="No" icon="pi pi-times" text onClick={hideDeleteProductDialog} />
-            <Button label="Yes" icon="pi pi-check" text onClick={deleteProduct} />
+            <Button label="Không" icon="pi pi-times" text onClick={hideDeleteProductDialog} />
+            <Button label="Có" icon="pi pi-check" text onClick={deleteProduct} />
         </>
     );
     const deleteProductsDialogFooter = (
         <>
-            <Button label="No" icon="pi pi-times" text onClick={hideDeleteProductsDialog} />
-            <Button label="Yes" icon="pi pi-check" text onClick={deleteSelectedProducts} />
+            <Button label="Không" icon="pi pi-times" text onClick={hideDeleteProductsDialog} />
+            <Button label="Có" icon="pi pi-check" text onClick={deleteSelectedProducts} />
         </>
     );
     const validate = () => {
@@ -358,7 +358,6 @@ const ProductPage = () => {
                         loading={loading}
                         responsiveLayout="scroll"
                     >
-                        <Column selectionMode="multiple" headerStyle={{ width: '4rem' }}></Column>
                         <Column field="name" header="Tên sản phẩm" sortable body={(d) => <span >{d.name}</span>} headerStyle={{ minWidth: '15rem' }}></Column>
                         <Column field="categoryName" header="Tên danh mục" sortable body={(d) => <span >{d.categoryName}</span>} headerStyle={{ minWidth: '15rem' }}></Column>
                         <Column field="materialName" header="Nguyên liệu" sortable body={(d) => <span >{d.materialName}</span>} headerStyle={{ minWidth: '15rem' }}></Column>
@@ -415,7 +414,7 @@ const ProductPage = () => {
                                 />
                             </div>
                             <div className="field">
-                                <label htmlFor="height">Height</label>
+                                <label htmlFor="height">Chiều cao</label>
                                 <InputNumber
                                     value={product.height}
                                     onChange={(event) => setRowData(event.value, "height")}
@@ -423,7 +422,7 @@ const ProductPage = () => {
                                 />
                             </div>
                             <div className="field">
-                                <label htmlFor="length">Length</label>
+                                <label htmlFor="length">Chiều dài</label>
                                 <InputNumber
                                     value={product.length}
                                     onChange={(event) => setRowData(event.value, "length")}
@@ -431,7 +430,7 @@ const ProductPage = () => {
                                 />
                             </div>
                             <div className="field">
-                                <label htmlFor="weight">Weight</label>
+                                <label htmlFor="weight">Cân nặng</label>
                                 <InputNumber
                                     value={product.weight}
                                     onChange={(event) => setRowData(event.value, "weight")}
@@ -439,7 +438,7 @@ const ProductPage = () => {
                                 />
                             </div>
                             <div className="field">
-                                <label htmlFor="width">Width</label>
+                                <label htmlFor="width">Độ rộng</label>
                                 <InputNumber
                                     value={product.width}
                                     onChange={(event) => setRowData(event.value, "width")}

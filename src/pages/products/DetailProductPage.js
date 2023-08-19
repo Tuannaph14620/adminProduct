@@ -128,8 +128,9 @@ const DeatailProductPage = (props) => {
             return;
         }
         setErrors({ field: '' })
+
         if (editStatus) {
-            updateProductOption(product).then((res) => {
+            updateProductOption({ ...product, productId: id }).then((res) => {
                 if (res) {
                     searchAll();
                     setLoading(false);
@@ -141,7 +142,7 @@ const DeatailProductPage = (props) => {
 
             })
         } else {
-            addProductOption(product).then((res) => {
+            addProductOption({ ...product, productId: id }).then((res) => {
                 if (res) {
                     searchAll();
                     setLoading(false);
@@ -215,7 +216,7 @@ const DeatailProductPage = (props) => {
         return (
             <React.Fragment>
                 <div className="my-2">
-                    <Button label="New" icon="pi pi-plus" severity="sucess" className="mr-2" onClick={openNew} />
+                    <Button label="Thêm mới" icon="pi pi-plus" severity="sucess" className="mr-2" onClick={openNew} />
                 </div>
             </React.Fragment>
         );
@@ -242,14 +243,14 @@ const DeatailProductPage = (props) => {
     );
     const deleteProductDialogFooter = (
         <>
-            <Button label="No" icon="pi pi-times" text onClick={hideDeleteProductDialog} />
-            <Button label="Yes" icon="pi pi-check" text onClick={deleteProduct} />
+            <Button label="Không" icon="pi pi-times" text onClick={hideDeleteProductDialog} />
+            <Button label="Có" icon="pi pi-check" text onClick={deleteProduct} />
         </>
     );
     const deleteProductsDialogFooter = (
         <>
-            <Button label="No" icon="pi pi-times" text onClick={hideDeleteProductsDialog} />
-            <Button label="Yes" icon="pi pi-check" text onClick={deleteSelectedProducts} />
+            <Button label="Không" icon="pi pi-times" text onClick={hideDeleteProductsDialog} />
+            <Button label="Có" icon="pi pi-check" text onClick={deleteSelectedProducts} />
         </>
     );
     const validate = () => {
@@ -348,7 +349,6 @@ const DeatailProductPage = (props) => {
                         loading={loading}
                         responsiveLayout="scroll"
                     >
-                        <Column selectionMode="multiple" headerStyle={{ width: '4rem' }}></Column>
                         <Column field="code" header="Số lượng" sortable body={(d) => <span >{d.qty}</span>} headerStyle={{ minWidth: '15rem' }}></Column>
                         <Column field="image" header="Hình ảnh" sortable body={(d) => <img src={d.image} className="shadow-2" width="100"></img>} headerStyle={{ minWidth: '15rem' }}></Column>
                         <Column field="price" header="Giá tiền" sortable body={(d) => <span >{d?.price?.toLocaleString('vi', { style: 'currency', currency: 'VND' })}</span>} headerStyle={{ minWidth: '15rem' }}></Column>

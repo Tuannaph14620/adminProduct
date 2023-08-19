@@ -94,7 +94,7 @@ const OrderPage = () => {
                 </span>
                 <div className="px-2 ">
                     <React.Fragment>
-                        <Button label="Export" icon="pi pi-upload" severity="help" onClick={exportCSV} />
+                        <Button label="Xuất" icon="pi pi-upload" severity="help" onClick={exportCSV} />
                     </React.Fragment>
                     <Button
                         icon="pi pi-filter"

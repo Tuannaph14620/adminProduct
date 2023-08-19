@@ -40,7 +40,6 @@ const DashBoardPage = () => {
         });
         revenueYear().then((res) => {
             const _data = res?.data.data
-            console.log(_data);
             setRevenueYearChart(_data)
             setLoading(false);
         });
@@ -110,7 +109,7 @@ const DashBoardPage = () => {
         ]
     };
     const optionChartYear = {
-        indexAxis: 'y',
+        indexAxis: 'x',
         maintainAspectRatio: false,
         aspectRatio: 0.8,
         plugins: {
