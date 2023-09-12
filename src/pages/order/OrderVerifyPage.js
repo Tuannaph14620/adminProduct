@@ -2,7 +2,6 @@ import React, { useEffect, useRef, useState } from 'react'
 import { Button } from 'primereact/button';
 import { Column } from 'primereact/column';
 import { DataTable } from 'primereact/datatable';
-import { InputText } from 'primereact/inputtext';
 import { Toast } from 'primereact/toast';
 import { listOrder } from '../../api/order';
 import moment from 'moment';
@@ -39,9 +38,6 @@ const OrderVerifyPage = () => {
                 }
             }
         ).then((res) => {
-            // const _paginator = { ...paginator };
-            // _paginator.total = res.total;
-            // setPaginator(_paginator);
             const _data = res?.data.data
             setOrders(_data);
             setLoading(false);

@@ -11,8 +11,6 @@ const DashBoardPage = () => {
     const [orderStatusChart2, setOrderStatusChart2] = useState(null)
     const [revenueYearChart, setRevenueYearChart] = useState(null)
 
-
-
     useEffect(() => {
         searchAll();
     }, []);

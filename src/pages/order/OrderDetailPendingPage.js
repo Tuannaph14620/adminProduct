@@ -10,7 +10,7 @@ import { Card } from 'primereact/card';
 import { Dialog } from 'primereact/dialog';
 import { InputText } from 'primereact/inputtext';
 import { InputTextarea } from 'primereact/inputtextarea';
-import { listDistrict, listProvince, listWard } from '../../api/ghn';
+import { feeShip, listDistrict, listProvince, listWard, methodShip } from '../../api/ghn';
 import { Dropdown } from 'primereact/dropdown';
 import { Timeline } from 'primereact/timeline';
 
@@ -24,6 +24,7 @@ const OrderDetailPendingPage = () => {
     const [district, setDistrict] = useState(null);
     const [historyOrder, setHistoryOrder] = useState(false);
     const [ward, setWard] = useState(null);
+    const [serviceId, setServiceId] = useState(null);
     const [valueStatus, setValueStatus] = useState({ status: '', value: '' })
     const [selectedProducts, setSelectedProducts] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -52,6 +53,10 @@ const OrderDetailPendingPage = () => {
                 const _data = res?.data.data
                 setWard(_data);
             });
+            methodShip(_data?.customerInfo?.districtId).then((res) => {
+                const _data = res?.data.data
+                setServiceId(_data)
+            })
             setLoading(false);
         });
         listProvince(id).then((res) => {
@@ -70,6 +75,21 @@ const OrderDetailPendingPage = () => {
                 setChangeAddress(true)
                 toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Sửa thành công', life: 3000 });
             }
+        })
+        const param = {
+            "service_id": infoCustomer.shipServiceId,
+            "insurance_value": orders.total,
+            "coupon": null,
+            "from_district_id": 3440,
+            "to_district_id": infoCustomer.districtId,
+            "to_ward_code": infoCustomer.wardCode,
+            "height": orders.height,
+            "length": orders.length,
+            "weight": orders.weight,
+            "width": orders.width,
+        }
+        feeShip(param).then((res) => {
+
         })
     }
     const onChange = () => {
@@ -93,9 +113,7 @@ const OrderDetailPendingPage = () => {
         setInfoCustomer(infoCustomerOriginal)
     }
     const confirmCancelCustomInfo = () => {
-        if (!onTouch) {
-            setCancelCustomInfo(true);
-        }
+        setCancelCustomInfo(true);
     };
     const hideConfirmCancelCustomInfo = () => {
         setCancelCustomInfo(false);
@@ -134,29 +152,49 @@ const OrderDetailPendingPage = () => {
         const table = { ...infoCustomer };
         switch (field) {
             case "provinceId":
-                table[field] = value.toString();
+                table[field] = value?.toString();
                 const proEdit = province?.find(({ ProvinceID }) => ProvinceID === value)
                 table["provinceName"] = proEdit?.ProvinceName
                 table["districtId"] = null
                 table["wardCode"] = null
-                listDistrict(value).then((res) => {
-                    const _data = res?.data.data
-                    setDistrict(_data);
-                });
+                if (value) {
+                    listDistrict(value).then((res) => {
+                        const _data = res?.data.data
+                        setDistrict(_data);
+                    });
+                } else {
+                    setDistrict(null)
+                }
+
                 break;
             case "districtId":
-                table[field] = value.toString();
+                table[field] = value?.toString();
                 const disEdit = district?.find(({ DistrictID }) => DistrictID === value)
                 table["districtName"] = disEdit?.DistrictName
-                listWard(value).then((res) => {
-                    const _data = res?.data.data
-                    setWard(_data);
-                });
+                if (value) {
+                    listWard(value).then((res) => {
+                        const _data = res?.data.data
+                        setWard(_data);
+                    });
+                    methodShip(value).then((res) => {
+                        const _data = res?.data.data
+                        setServiceId(_data);
+                    })
+                } else {
+                    setWard(null);
+                }
+
                 break;
             case "wardCode":
                 table[field] = value;
                 const wardEdit = ward?.find(({ WardCode }) => WardCode === value)
                 table["wardName"] = wardEdit?.WardName
+                break;
+
+            case "shipServiceId":
+                table[field] = value?.toString();
+                const serviceList = serviceId?.find(({ service_id }) => service_id === value)
+                table["shipServiceName"] = serviceList?.short_name
                 break;
             default: {
                 table[field] = value;
@@ -183,7 +221,7 @@ const OrderDetailPendingPage = () => {
                             <div className='grid crud-demo pt-2'>
                                 <div className='col-12'>
                                     <Button style={{ display: changeAddress ? 'block' : 'none' }} className='mb-3' label="Sửa thông tin " onClick={() => setChangeAddress(false)} />
-                                    <Button disabled={onTouch} style={{ display: changeAddress ? 'none' : 'block' }} className='mb-3' label="Hủy" onClick={() => confirmCancelCustomInfo()} />
+                                    <Button style={{ display: changeAddress ? 'none' : 'block' }} className='mb-3' label="Hủy" onClick={() => confirmCancelCustomInfo()} />
                                     <div className="p-fluid">
                                         <div className="field">
                                             <label htmlFor="name">Tên khách hàng: {changeAddress ? infoCustomer?.nameOfRecipient : ''}</label>
@@ -265,8 +303,23 @@ const OrderDetailPendingPage = () => {
                                                 id="addressDetail"
                                                 rows={3} cols={20} />
                                         </div>
+                                        <div className="field">
+                                            <label htmlFor="province">Loại hình vận chuyển: {changeAddress ? infoCustomer?.shipServiceName : ''}</label>
+                                            <Dropdown
+                                                style={{ display: changeAddress ? 'none' : '' }}
+                                                disabled={changeAddress}
+                                                value={Number(infoCustomer?.shipServiceId)}
+                                                filter
+                                                hidden
+                                                showClear
+                                                options={serviceId}
+                                                optionLabel="short_name"
+                                                optionValue="service_id"
+                                                onChange={(event) => setRowData(event.target.value, "shipServiceId")}
+                                            ></Dropdown>
+                                        </div>
                                         <div className='flex align-items-center justify-content-center'>
-                                            <Button style={{ display: changeAddress ? 'none' : 'block' }} label="Save" type='submit' icon="pi pi-check" loading={loading} onClick={() => onSubmit()} />
+                                            <Button disabled={onTouch} style={{ display: changeAddress ? 'none' : 'block' }} label="Lưu" type='submit' icon="pi pi-check" loading={loading} onClick={() => onSubmit()} />
                                         </div>
                                     </div>
                                 </div>
@@ -301,7 +354,7 @@ const OrderDetailPendingPage = () => {
                             </span>
                         </div>
                     </Dialog>
-                    <Dialog visible={cancelCustomInfo} style={{ width: '450px' }} header="Confirm" modal footer={confirmCancelCustomInfoFooter} onHide={hideConfirmCancelCustomInfo} >
+                    <Dialog visible={cancelCustomInfo} style={{ width: '500px' }} header="Confirm" modal footer={confirmCancelCustomInfoFooter} onHide={hideConfirmCancelCustomInfo} >
                         <div className="flex align-items-center justify-content-center">
                             <i className="pi pi-exclamation-triangle mr-3" style={{ fontSize: '2rem' }} />
                             <span>

@@ -62,9 +62,6 @@ const ProductPage = () => {
                 }
             }
         ).then((res) => {
-            // const _paginator = { ...paginator };
-            // _paginator.total = res.total;
-            // setPaginator(_paginator);
             const _data = res?.data.data
             setProducts(_data);
             setLoading(false);
