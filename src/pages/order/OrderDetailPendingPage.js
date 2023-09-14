@@ -66,31 +66,24 @@ const OrderDetailPendingPage = () => {
 
 
     };
-    const onSubmit = () => {
+    const onSubmit = async () => {
         setLoading(true);
-        changeInfoCustomer(infoCustomer).then((res) => {
+        if (infoCustomer?.shipServiceId == '100039') {
+            setLoading(false);
+            toast.current.show({ severity: 'warn', summary: 'Cảnh báo', detail: 'Phương thức vận chuyển không phù hợp, vui lòng chọn lại!', life: 3000 });
+            return
+
+        }
+        changeInfoCustomer({ ...infoCustomer, shipPrice: orders?.shipPrice }).then((res) => {
             if (res) {
                 searchAll();
                 setLoading(false);
                 setChangeAddress(true)
-                toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Sửa thành công', life: 3000 });
+                toast.current.show({ severity: 'success', summary: 'Thành công', detail: 'Sửa thành công', life: 3000 });
             }
         })
-        const param = {
-            "service_id": infoCustomer.shipServiceId,
-            "insurance_value": orders.total,
-            "coupon": null,
-            "from_district_id": 3440,
-            "to_district_id": infoCustomer.districtId,
-            "to_ward_code": infoCustomer.wardCode,
-            "height": orders.height,
-            "length": orders.length,
-            "weight": orders.weight,
-            "width": orders.width,
-        }
-        feeShip(param).then((res) => {
 
-        })
+
     }
     const onChange = () => {
         setLoading(true);
@@ -147,7 +140,7 @@ const OrderDetailPendingPage = () => {
 
         </>
     );
-    const setRowData = (value, field) => {
+    const setRowData = async (value, field) => {
         setOnTouch(false)
         const table = { ...infoCustomer };
         switch (field) {
@@ -192,9 +185,34 @@ const OrderDetailPendingPage = () => {
                 break;
 
             case "shipServiceId":
-                table[field] = value?.toString();
+                table[field] = value ? value?.toString() : null;
                 const serviceList = serviceId?.find(({ service_id }) => service_id === value)
                 table["shipServiceName"] = serviceList?.short_name
+                const param = {
+                    "service_id": value,
+                    "insurance_value": orders.total,
+                    "coupon": null,
+                    "from_district_id": 3440,
+                    "to_district_id": infoCustomer.districtId,
+                    "to_ward_code": infoCustomer.wardCode,
+                    "height": orders.height,
+                    "length": orders.length,
+                    "weight": orders.weight,
+                    "width": orders.width,
+                }
+                if (value) {
+                    try {
+                        await feeShip(param).then((res) => {
+                            if (res) {
+
+                            }
+                        })
+                    } catch (error) {
+                        setChangeAddress(false)
+                        toast.current.show({ severity: 'warn', summary: 'Cảnh báo', detail: 'Phương thức vận chuyển không phù hợp, vui lòng chọn lại!', life: 3000 });
+                    }
+                }
+
                 break;
             default: {
                 table[field] = value;
@@ -298,9 +316,9 @@ const OrderDetailPendingPage = () => {
                                             <InputTextarea
                                                 style={{ display: changeAddress ? 'none' : 'block' }}
                                                 disabled={changeAddress}
-                                                onChange={(event) => setRowData(event.target.value, "addressDetail")}
-                                                value={infoCustomer?.addressDetail}
-                                                id="addressDetail"
+                                                onChange={(event) => setRowData(event.target.value, "address")}
+                                                value={infoCustomer?.address}
+                                                id="address"
                                                 rows={3} cols={20} />
                                         </div>
                                         <div className="field">
