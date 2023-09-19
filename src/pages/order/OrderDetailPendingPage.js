@@ -13,10 +13,12 @@ import { InputTextarea } from 'primereact/inputtextarea';
 import { feeShip, listDistrict, listProvince, listWard, methodShip } from '../../api/ghn';
 import { Dropdown } from 'primereact/dropdown';
 import { Timeline } from 'primereact/timeline';
+import { classNames } from 'primereact/utils';
 
 const OrderDetailPendingPage = () => {
     const [orders, setOrders] = useState(null);
     const [deleteProductDialog, setDeleteProductDialog] = useState(false);
+    const [errors, setErrors] = useState({ field: "" });
     const [cancelCustomInfo, setCancelCustomInfo] = useState(false);
     const [infoCustomer, setInfoCustomer] = useState({});
     const [infoCustomerOriginal, setInfoCustomerOriginal] = useState({});
@@ -68,6 +70,12 @@ const OrderDetailPendingPage = () => {
     };
     const onSubmit = async () => {
         setLoading(true);
+        if (!validate()) {
+            setLoading(false);
+            return;
+        }
+        setErrors({ field: '' })
+
         if (infoCustomer?.shipServiceId == '100039') {
             setLoading(false);
             toast.current.show({ severity: 'warn', summary: 'Cảnh báo', detail: 'Phương thức vận chuyển không phù hợp, vui lòng chọn lại!', life: 3000 });
@@ -104,6 +112,7 @@ const OrderDetailPendingPage = () => {
         setChangeAddress(true);
         setOnTouch(true);
         setInfoCustomer(infoCustomerOriginal)
+        setErrors({ field: '' })
     }
     const confirmCancelCustomInfo = () => {
         setCancelCustomInfo(true);
@@ -140,6 +149,61 @@ const OrderDetailPendingPage = () => {
 
         </>
     );
+
+    const validate = () => {
+        const _dataTable = { ...infoCustomer };
+        const _error = { ...errors };
+        if (!_dataTable.nameOfRecipient) {
+            _error.field = 'nameOfRecipient';
+            toast.current.show({ severity: 'warn', summary: 'Cảnh báo', detail: 'Vui lòng nhập tên khách hàng', life: 3000 });
+            setErrors(_error);
+            return false;
+        }
+        if (!_dataTable.email) {
+            _error.field = "email";
+            toast.current.show({ severity: 'warn', summary: 'Cảnh báo', detail: 'Vui lòng nhập email khách hàng', life: 3000 });
+            setErrors(_error);
+            return false;
+        }
+        if (!_dataTable.phoneNumber) {
+            _error.field = "phoneNumber";
+            toast.current.show({ severity: 'warn', summary: 'Cảnh báo', detail: 'Vui lòng nhập số điện thoại khách hàng', life: 3000 });
+            setErrors(_error);
+            return false;
+        }
+        if (!_dataTable.provinceId) {
+            _error.field = "provinceId";
+            toast.current.show({ severity: 'warn', summary: 'Cảnh báo', detail: 'Vui lòng nhập Tỉnh/Thành phố', life: 3000 });
+            setErrors(_error);
+            return false;
+        }
+        if (!_dataTable.districtId) {
+            _error.field = "districtId";
+            toast.current.show({ severity: 'warn', summary: 'Cảnh báo', detail: 'Vui lòng nhập Quận/Huyện', life: 3000 });
+            setErrors(_error);
+            return false;
+        }
+        if (!_dataTable.wardCode) {
+            _error.field = "wardCode";
+            toast.current.show({ severity: 'warn', summary: 'Cảnh báo', detail: 'Vui lòng nhập Phường/Xã', life: 3000 });
+            setErrors(_error);
+            return false;
+        }
+        if (!_dataTable.address) {
+            _error.field = "address";
+            toast.current.show({ severity: 'warn', summary: 'Cảnh báo', detail: 'Vui lòng nhập mô tả địa chỉ', life: 3000 });
+            setErrors(_error);
+            return false;
+        }
+        if (!_dataTable.shipServiceId) {
+            _error.field = "shipServiceId";
+            toast.current.show({ severity: 'warn', summary: 'Cảnh báo', detail: 'Vui lòng nhập loại hình vận chuyển', life: 3000 });
+            setErrors(_error);
+            return false;
+        }
+        return true;
+    }
+
     const setRowData = async (value, field) => {
         setOnTouch(false)
         const table = { ...infoCustomer };
@@ -238,7 +302,7 @@ const OrderDetailPendingPage = () => {
                         <AccordionTab header="Thông tin người nhận">
                             <div className='grid crud-demo pt-2'>
                                 <div className='col-12'>
-                                    <Button style={{ display: changeAddress ? 'block' : 'none' }} className='mb-3' label="Sửa thông tin " onClick={() => setChangeAddress(false)} />
+                                    <Button style={{ display: orders?.paymentMethod === 'VNPAY' ? 'none' : changeAddress ? 'block' : 'none' }} className='mb-3' label="Sửa thông tin " onClick={() => setChangeAddress(false)} />
                                     <Button style={{ display: changeAddress ? 'none' : 'block' }} className='mb-3' label="Hủy" onClick={() => confirmCancelCustomInfo()} />
                                     <div className="p-fluid">
                                         <div className="field">
@@ -247,6 +311,9 @@ const OrderDetailPendingPage = () => {
                                                 style={{ display: changeAddress ? 'none' : 'block' }}
                                                 disabled={changeAddress}
                                                 value={infoCustomer?.nameOfRecipient}
+                                                className={classNames({
+                                                    "p-invalid": errors.field === 'nameOfRecipient'
+                                                })}
                                                 onChange={(event) => setRowData(event.target.value, "nameOfRecipient")}
                                                 id="name" />
                                         </div>
@@ -256,6 +323,9 @@ const OrderDetailPendingPage = () => {
                                                 style={{ display: changeAddress ? 'none' : 'block' }}
                                                 disabled={changeAddress}
                                                 value={infoCustomer?.email}
+                                                className={classNames({
+                                                    "p-invalid": errors.field === 'email'
+                                                })}
                                                 onChange={(event) => setRowData(event.target.value, "email")}
                                                 id="email" />
                                         </div>
@@ -265,6 +335,9 @@ const OrderDetailPendingPage = () => {
                                                 style={{ display: changeAddress ? 'none' : 'block' }}
                                                 disabled={changeAddress}
                                                 value={infoCustomer?.phoneNumber}
+                                                className={classNames({
+                                                    "p-invalid": errors.field === 'phoneNumber'
+                                                })}
                                                 onChange={(event) => setRowData(event.target.value, "phoneNumber")}
                                                 id="phone" />
                                         </div>
@@ -278,6 +351,7 @@ const OrderDetailPendingPage = () => {
                                                 showClear
                                                 options={province}
                                                 optionLabel="ProvinceName"
+                                                className={classNames({ 'p-invalid': errors.field === 'provinceId' })}
                                                 optionValue="ProvinceID"
                                                 onChange={(event) => setRowData(event.target.value, "provinceId")}
                                             ></Dropdown>
@@ -291,6 +365,7 @@ const OrderDetailPendingPage = () => {
                                                 filter
                                                 showClear
                                                 options={district}
+                                                className={classNames({ 'p-invalid': errors.field === 'districtId' })}
                                                 optionLabel="DistrictName"
                                                 optionValue="DistrictID"
                                                 onChange={(event) => setRowData(event.target.value, "districtId")}
@@ -306,6 +381,7 @@ const OrderDetailPendingPage = () => {
                                                 hidden
                                                 showClear
                                                 options={ward}
+                                                className={classNames({ 'p-invalid': errors.field === 'wardCode' })}
                                                 optionLabel="WardName"
                                                 optionValue="WardCode"
                                                 onChange={(event) => setRowData(event.target.value, "wardCode")}
@@ -317,6 +393,7 @@ const OrderDetailPendingPage = () => {
                                                 style={{ display: changeAddress ? 'none' : 'block' }}
                                                 disabled={changeAddress}
                                                 onChange={(event) => setRowData(event.target.value, "address")}
+                                                className={classNames({ 'p-invalid': errors.field === 'address' })}
                                                 value={infoCustomer?.address}
                                                 id="address"
                                                 rows={3} cols={20} />
@@ -332,6 +409,7 @@ const OrderDetailPendingPage = () => {
                                                 showClear
                                                 options={serviceId}
                                                 optionLabel="short_name"
+                                                className={classNames({ 'p-invalid': errors.field === 'shipServiceId' })}
                                                 optionValue="service_id"
                                                 onChange={(event) => setRowData(event.target.value, "shipServiceId")}
                                             ></Dropdown>
